@@ -1,0 +1,46 @@
+{
+  "manifest_version": 2,
+  "name": "BBC POST Interceptor Plugin",
+  "version": "1.0",
+  "description": "Intercepts specific POST requests from www.bbc.co.uk and forwards the data to another endpoint.",
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "activeTab",
+    "storage",
+    "notifications",
+    "https://www.bbc.co.uk/*",
+    "https://bbc.co.uk/*",
+    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/*",
+    "https://endpont.trans-matter.co.uk/*",
+    "http://localhost:8080/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    "confirmation/confirmation.html",
+    "confirmation/confirmation.js",
+    "confirmation/confirmation.css",
+    "popup/popup.css"
+  ],
+  "applications": {
+    "gecko": {
+      "id": "your-addon-id@example.com",
+      "strict_min_version": "42.0"
+    }
+  }
+}
