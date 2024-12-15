@@ -2,7 +2,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
-const PORT = 8082;
+const PORT = 80;
 
 // Middleware to parse JSON request body
 app.use(express.json());

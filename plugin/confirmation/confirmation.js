@@ -31,7 +31,7 @@ if (originUrl && data) {
 async function sendDataToTACC(originUrl, data) {
   try {
     const parsedData = JSON.parse(data); // Parse JSON for validation
-    const response = await fetch("http://localhost:8082/intercept", {
+    const response = await fetch("https://endpoint.trans-matters.org.uk/intercept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

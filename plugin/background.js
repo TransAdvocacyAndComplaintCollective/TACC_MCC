@@ -109,7 +109,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Function to send the intercepted data to TACC
 async function sendToTACC(data, originUrl) {
   try {
-    await fetch("http://localhost:8080/intercept", {
+    await fetch("https://endpoint.trans-matters.org.uk/intercept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -130,7 +130,7 @@ async function sendToTACC(data, originUrl) {
 async function checkForProblematicStories() {
   console.log("Checking for problematic stories...");
   try {
-    const response = await fetch("http://localhost:8081/problematic");
+    const response = await fetch("endpoint.trans-matters.org.uk/problematic");
     if (response.ok) {
       const data = await response.json();
       if (data.length > 0) {
