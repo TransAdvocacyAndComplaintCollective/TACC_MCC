@@ -7,13 +7,12 @@
     "webRequest",
     "webRequestBlocking",
     "activeTab",
+    "tabs",
     "storage",
     "notifications",
     "https://www.bbc.co.uk/*",
     "https://bbc.co.uk/*",
-    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/*",
-    "https://endpont.trans-matter.co.uk/*",
-    "http://localhost:8080/*"
+    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/*"
   ],
   "background": {
     "scripts": ["background.js"]
@@ -21,15 +20,15 @@
   "browser_action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "icons/image.png",
+      "48": "icons/image.png",
+      "128": "icons/image.png"
     }
   },
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/image.png",
+    "48": "icons/image.png",
+    "128": "icons/image.png"
   },
   "web_accessible_resources": [
     "confirmation/confirmation.html",

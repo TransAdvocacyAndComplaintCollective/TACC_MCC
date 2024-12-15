@@ -1,12 +1,13 @@
-// background.js
+if (typeof browser === 'undefined') {
+  var browser = chrome;
+}
 
 let pendingData = null;
 let pendingOriginUrl = null;
 let sendStatus = 'Idle'; // Track the current status
 
 // Listen for POST requests from BBC
-// Listen for POST requests from BBC
-chrome.webRequest.onBeforeRequest.addListener(
+browser.webRequest.onBeforeRequest.addListener(
   async (details) => {
     if (
       details.method === "POST" &&
@@ -41,21 +42,26 @@ chrome.webRequest.onBeforeRequest.addListener(
         }
 
         if (dataToCopy) {
-          // Store the data and origin URL in global variables
+          // Store the data and origin URL
           try {
-            window.pendingData = JSON.parse(dataToCopy);
+            pendingData = JSON.parse(dataToCopy);
           } catch (e) {
             console.error("Failed to parse intercepted data as JSON:", e);
-            // If data can't be parsed as JSON, store it as a string directly
-            window.pendingData = dataToCopy;
+            pendingData = dataToCopy; // Fallback to raw string if parsing fails
           }
-          window.pendingOriginUrl = details.originUrl;
+          pendingOriginUrl = details.originUrl;
 
           // Open confirmation page in a new tab
-          const confirmationUrl = `${chrome.runtime.getURL(
+          const confirmationUrl = `${browser.runtime.getURL(
             "confirmation/confirmation.html"
           )}?originUrl=${encodeURIComponent(details.originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-          chrome.tabs.create({ url: confirmationUrl });
+          browser.tabs.create({ url: confirmationUrl }, (tab) => {
+            if (chrome.runtime.lastError) {
+              console.error("Error creating tab:", chrome.runtime.lastError);
+            } else {
+              console.log("Tab created successfully:", tab);
+            }
+          });
         }
       }
     }
@@ -68,9 +74,8 @@ chrome.webRequest.onBeforeRequest.addListener(
   ["requestBody"]
 );
 
-
 // Listen for messages from confirmation page
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'confirmSend' && pendingData && pendingOriginUrl) {
     // User confirmed to send data
     sendStatus = 'Sending...';
@@ -130,14 +135,18 @@ async function checkForProblematicStories() {
       const data = await response.json();
       if (data.length > 0) {
         data.forEach((story) => {
-          chrome.notifications.create({
+          browser.notifications.create({
             type: "basic",
             iconUrl: "icons/icon48.png",
             title: "Problematic Story Alert",
-            message: `Title: ${story.title}\nClick to view more.`,
-            onclick: () => {
-              chrome.tabs.create({ url: story.url });
-            }
+            message: `Title: ${story.title}\nClick to view more.`
+          }, (notificationId) => {
+            // Attach click handler for notification
+            browser.notifications.onClicked.addListener((id) => {
+              if (id === notificationId) {
+                browser.tabs.create({ url: story.url });
+              }
+            });
           });
         });
       }
