@@ -109,7 +109,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Function to send the intercepted data to TACC
 async function sendToTACC(data, originUrl) {
   try {
-    await fetch("https://endpoint.trans-matters.org.uk/intercept", {
+    await fetch("https://tacc.org.uk/api/intercept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

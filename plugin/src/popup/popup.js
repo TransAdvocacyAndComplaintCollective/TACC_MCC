@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkStoriesBtn.disabled = true;
     checkStoriesBtn.textContent = 'Checking...';
     try {
-      const response = await fetch('http://localhost:8080/problematic');
+      const response = await fetch('https://tacc.org.uk/api/problematic');
       if (response.ok) {
         const data = await response.json();
         displayStories(data);
