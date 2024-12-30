@@ -241,7 +241,7 @@ app.post("api/intercept", (req, res) => {
 });
 
 // GET /problematic - Retrieve problematic stories
-app.get("api//problematic", (req, res) => {
+app.get("api/problematic", (req, res) => {
   const selectQuery = `SELECT * FROM problematic_stories ORDER BY timestamp DESC;`;
 
   db.query(selectQuery, (err, results) => {
