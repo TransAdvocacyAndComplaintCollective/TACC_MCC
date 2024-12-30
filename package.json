@@ -1,10 +1,10 @@
 {
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.19.2",
-    "sqlite3": "^5.1.7",
-    "web-ext": "^8.3.0"
+    "sqlite3": "^5.1.7"
   },
-  "name": "bbc_compalint",
+  "name": "bbc_complaint_interceptor",
   "version": "1.0.0",
   "main": "background.js",
   "scripts": {
