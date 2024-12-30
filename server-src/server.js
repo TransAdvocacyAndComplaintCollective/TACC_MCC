@@ -5,7 +5,7 @@ const express = require("express");
 const mysql = require("mysql2");
 
 const app = express();
-const PORT = process.env.PORT || 5555;
+const PORT = process.env.SERVER_PORT || process.env.PORT || 5555;
 
 // Middleware to parse JSON request body
 app.use(express.json());
@@ -36,6 +36,18 @@ db.connect((err) => {
     console.log("Connected to MySQL database.");
   }
 });
+
+
+const createRepliesTableQuery = `
+CREATE TABLE IF NOT EXISTS replies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bbc_ref_number VARCHAR(255) NOT NULL,
+  intercept_id INT NOT NULL,
+  bbc_reply TEXT,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (intercept_id) REFERENCES intercepted_data(id)
+) ENGINE=InnoDB;
+`;
 
 // Create 'intercepted_data' table if it doesn't exist
 const createInterceptedTableQuery = `
@@ -223,6 +235,33 @@ app.get("/problematic", (req, res) => {
     res.status(200).json(results);
   });
 });
+
+
+// POST /replies - Store a reply from the user
+app.post("/replies", (req, res) => {
+  const { bbc_ref_number, intercept_id, bbc_reply } = req.body;
+
+  // Validation
+  if (!bbc_ref_number || !intercept_id || !bbc_reply) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  const insertReplyQuery = `
+    INSERT INTO replies (bbc_ref_number, intercept_id, bbc_reply)
+    VALUES (?, ?, ?);
+  `;
+
+  db.query(insertReplyQuery, [bbc_ref_number, intercept_id, bbc_reply], (err, results) => {
+    if (err) {
+      console.error("Error storing reply:", err.message);
+      return res.status(500).json({ error: "Failed to store reply." });
+    }
+
+    res.status(200).json({ message: "Reply stored successfully.", id: results.insertId });
+  });
+});
+
+
 
 // Graceful shutdown
 process.on("SIGINT", () => {

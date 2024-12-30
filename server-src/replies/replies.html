@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Reply</title>
+</head>
+<body>
+  <h1>Upload BBC Reply</h1>
+  <form id="replyForm">
+    <label for="bbcRef">BBC Reference Number:</label><br>
+    <input type="text" id="bbcRef" name="bbcRef" required><br><br>
+
+    <label for="interceptId">Intercept ID:</label><br>
+    <input type="number" id="interceptId" name="interceptId" required><br><br>
+
+    <label for="bbcReply">BBC Reply:</label><br>
+    <textarea id="bbcReply" name="bbcReply" rows="4" cols="50" required></textarea><br><br>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    document.getElementById('replyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = {
+        bbc_ref_number: document.getElementById('bbcRef').value,
+        intercept_id: document.getElementById('interceptId').value,
+        bbc_reply: document.getElementById('bbcReply').value,
+      };
+
+      try {
+        const response = await fetch('/replies', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert('Reply submitted successfully!');
+        } else {
+          alert(`Error: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Error submitting reply:', error);
+        alert('An unexpected error occurred.');
+      }
+    });
+  </script>
+</body>
+</html>
