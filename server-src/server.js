@@ -158,7 +158,7 @@ db.query(createProblematicTableQuery, (err) => {
 });
 
 // POST /intercept - Store intercepted data
-app.post("api/intercept", (req, res) => {
+app.post("/api/intercept", (req, res) => {
   const { originUrl, interceptedData } = req.body;
   console.log("Received data from:", req.body);
   
@@ -241,7 +241,7 @@ app.post("api/intercept", (req, res) => {
 });
 
 // GET /problematic - Retrieve problematic stories
-app.get("api/problematic", (req, res) => {
+app.get("/api/problematic", (req, res) => {
   const selectQuery = `SELECT * FROM problematic_stories ORDER BY timestamp DESC;`;
 
   db.query(selectQuery, (err, results) => {
@@ -255,7 +255,7 @@ app.get("api/problematic", (req, res) => {
 });
 
 // POST /replies - Store a reply from the user
-app.post("api/replies", (req, res) => {
+app.post("/api/replies", (req, res) => {
   const { bbc_ref_number, intercept_id, bbc_reply } = req.body;
 
   // Validation
