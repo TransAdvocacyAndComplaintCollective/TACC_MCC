@@ -1,8 +1,11 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const mysql = require("mysql2");
 
 const app = express();
-const PORT = 80;
+const PORT = process.env.PORT || 5555;
 
 // Middleware to parse JSON request body
 app.use(express.json());
@@ -15,113 +18,132 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize SQLite database
-const db = new sqlite3.Database("./intercepted_data.db", (err) => {
+// Initialize MySQL database connection
+const db = mysql.createConnection({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'your_mysql_username',
+  password: process.env.DB_PASSWORD || 'your_mysql_password',
+  database: process.env.DB_NAME || 'intercepted_data_db',
+  port: process.env.DB_PORT || 3306,
+});
+
+// Connect to the database
+db.connect((err) => {
   if (err) {
     console.error("Database connection error:", err.message);
+    process.exit(1); // Exit the application if connection fails
   } else {
-    console.log("Connected to SQLite database.");
+    console.log("Connected to MySQL database.");
   }
 });
 
-// Create table for 'intercepted_data' without address-related fields
+// Create 'intercepted_data' table if it doesn't exist
 const createInterceptedTableQuery = `
 CREATE TABLE IF NOT EXISTS intercepted_data (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  originUrl TEXT,
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  originUrl VARCHAR(255),
   previous_complaint TEXT,
   captcha TEXT,
-  dateproblemstarted TEXT,
+  dateproblemstarted VARCHAR(255),
   description TEXT,
-  emailaddress TEXT,
-  firstname TEXT,          -- Made optional by default
-  lastname TEXT,           -- Made optional by default
-  salutation TEXT,         -- Made optional by default
+  emailaddress VARCHAR(255),
+  firstname VARCHAR(255),          -- Optional
+  lastname VARCHAR(255),           -- Optional
+  salutation VARCHAR(255),         -- Optional
   generalissue1 TEXT,
   intro_text TEXT,
-  iswelsh TEXT,
-  liveorondemand TEXT,
-  localradio TEXT,
-  make TEXT,
+  iswelsh VARCHAR(10),
+  liveorondemand VARCHAR(50),
+  localradio VARCHAR(255),
+  make VARCHAR(255),
   moderation_text TEXT,
-  network TEXT,
-  outside_the_uk TEXT,
-  platform TEXT,
-  programme TEXT,
-  programmeid TEXT,
+  network VARCHAR(255),
+  outside_the_uk VARCHAR(10),
+  platform VARCHAR(255),
+  programme VARCHAR(255),
+  programmeid VARCHAR(255),
   reception_text TEXT,
-  redbuttonfault TEXT,
-  region TEXT,
-  responserequired TEXT,
-  servicetv TEXT,
+  redbuttonfault VARCHAR(255),
+  region VARCHAR(255),
+  responserequired VARCHAR(255),
+  servicetv VARCHAR(255),
   sounds_text TEXT,
-  sourceurl TEXT,
-  subject TEXT,
-  title TEXT,
-  transmissiondate TEXT,
-  transmissiontime TEXT,
-  under18 TEXT,
-  verifyform TEXT,
+  sourceurl VARCHAR(255),
+  subject VARCHAR(255),
+  title VARCHAR(255),
+  transmissiondate VARCHAR(50),
+  transmissiontime VARCHAR(50),
+  under18 VARCHAR(10),
+  verifyform VARCHAR(255),
   complaint_nature TEXT,
   complaint_nature_sounds TEXT,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 `;
 
-// Create table for 'problematic_stories' (unchanged)
+// Create 'problematic_stories' table if it doesn't exist
 const createProblematicTableQuery = `
 CREATE TABLE IF NOT EXISTS problematic_stories (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  url TEXT,
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  url VARCHAR(255),
   previous_complaint TEXT,
-  dateproblemstarted TEXT,
+  dateproblemstarted VARCHAR(255),
   description TEXT,
   intro_text TEXT,
-  lang TEXT,
-  liveorondemand TEXT,
-  localradio TEXT,
+  lang VARCHAR(10),
+  liveorondemand VARCHAR(50),
+  localradio VARCHAR(255),
   moderation_text TEXT,
-  network TEXT,
-  programme TEXT,
-  programmeid TEXT,
-  responserequired TEXT,
-  salutation TEXT,
-  servicetv TEXT,
+  network VARCHAR(255),
+  programme VARCHAR(255),
+  programmeid VARCHAR(255),
+  responserequired VARCHAR(255),
+  salutation VARCHAR(255),
+  servicetv VARCHAR(255),
   complaint_nature TEXT,
   complaint_nature_sounds TEXT,
-  issue_severity TEXT,
-  flagged_by TEXT,
-  review_status TEXT,
-  issue_category TEXT,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+  issue_severity VARCHAR(50),
+  flagged_by VARCHAR(255),
+  review_status VARCHAR(50),
+  issue_category VARCHAR(255),
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
 `;
 
 // Initialize database tables
-db.serialize(() => {
-  db.run(createInterceptedTableQuery, (err) => {
-    if (err) console.error("Error creating 'intercepted_data' table:", err.message);
-    else console.log("Table 'intercepted_data' is ready.");
-  });
+db.query(createInterceptedTableQuery, (err) => {
+  if (err) {
+    console.error("Error creating 'intercepted_data' table:", err.message);
+  } else {
+    console.log("Table 'intercepted_data' is ready.");
+  }
+});
 
-  db.run(createProblematicTableQuery, (err) => {
-    if (err) console.error("Error creating 'problematic_stories' table:", err.message);
-    else console.log("Table 'problematic_stories' is ready.");
-  });
+db.query(createProblematicTableQuery, (err) => {
+  if (err) {
+    console.error("Error creating 'problematic_stories' table:", err.message);
+  } else {
+    console.log("Table 'problematic_stories' is ready.");
+  }
 });
 
 // POST /intercept - Store intercepted data
 app.post("/intercept", (req, res) => {
   const { originUrl, interceptedData } = req.body;
-
-  if (!originUrl || !interceptedData || !interceptedData.formData) {
+  console.log("Received data from:", req.body);
+  
+  // Validation
+  if (!originUrl || !interceptedData) {
     return res.status(400).json({ error: "Invalid request body." });
   }
 
-  const formData = interceptedData.formData;
-  formData.previous_complaint = formData["are_you_contacting_us_about_a_previous_complaint_"] || null;
+  // Use interceptedData directly
+  const formData = { ...interceptedData };
 
-  // Removed address-related fields
+  // Handle 'previous_complaint' appropriately
+  formData.previous_complaint = formData.previous_complaint || formData["are_you_contacting_us_about_a_previous_complaint_"] || null;
+
+  // Define fields to insert
   const fields = [
     "originUrl",
     "previous_complaint",
@@ -129,9 +151,9 @@ app.post("/intercept", (req, res) => {
     "dateproblemstarted",
     "description",
     "emailaddress",
-    "firstname",          // Optional
-    "lastname",           // Optional
-    "salutation",         // Optional
+    "firstname",
+    "lastname",
+    "salutation",
     "generalissue1",
     "intro_text",
     "iswelsh",
@@ -161,20 +183,30 @@ app.post("/intercept", (req, res) => {
     "complaint_nature_sounds",
   ];
 
-  const values = fields.map((field) => formData[field] || null);
+  // Map fields to their corresponding values, defaulting to null if undefined
+  const values = fields.map((field) => {
+    if (field === "originUrl") {
+      return originUrl || null;
+    }
+    return formData[field] || null;
+  });
+
   console.log("Received data:", values);
+
+  // Construct the INSERT query with placeholders
   const placeholders = fields.map(() => "?").join(", ");
   const insertQuery = `
     INSERT INTO intercepted_data (${fields.join(", ")})
     VALUES (${placeholders});
   `;
-  db.run(insertQuery, values, function (err) {
+
+  db.query(insertQuery, values, (err, results) => {
     if (err) {
       console.error("Database insertion error:", err.message);
       return res.status(500).json({ error: "Failed to store data." });
     }
 
-    res.status(200).json({ message: "Data stored successfully.", id: this.lastID });
+    res.status(200).json({ message: "Data stored successfully.", id: results.insertId });
   });
 });
 
@@ -182,19 +214,19 @@ app.post("/intercept", (req, res) => {
 app.get("/problematic", (req, res) => {
   const selectQuery = `SELECT * FROM problematic_stories ORDER BY timestamp DESC;`;
 
-  db.all(selectQuery, [], (err, rows) => {
+  db.query(selectQuery, (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);
       return res.status(500).json({ error: "Failed to fetch problematic stories." });
     }
 
-    res.status(200).json(rows);
+    res.status(200).json(results);
   });
 });
 
 // Graceful shutdown
 process.on("SIGINT", () => {
-  db.close((err) => {
+  db.end((err) => {
     if (err) console.error("Error closing database:", err.message);
     else console.log("Database connection closed.");
     process.exit(0);
