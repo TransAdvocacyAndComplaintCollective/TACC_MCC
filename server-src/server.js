@@ -3,6 +3,7 @@ require('dotenv').config();
 
 const express = require("express");
 const mysql = require("mysql2");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.SERVER_PORT || process.env.PORT || 5555;
@@ -13,10 +14,19 @@ app.use(express.json());
 // CORS Middleware
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
   next();
 });
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize MySQL database connection
 const db = mysql.createConnection({
@@ -37,7 +47,6 @@ db.connect((err) => {
   }
 });
 
-
 const createRepliesTableQuery = `
 CREATE TABLE IF NOT EXISTS replies (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -45,7 +54,7 @@ CREATE TABLE IF NOT EXISTS replies (
   intercept_id INT NOT NULL,
   bbc_reply TEXT,
   timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (intercept_id) REFERENCES intercepted_data(id)
+  FOREIGN KEY (intercept_id) REFERENCES intercepted_data(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 `;
 
@@ -122,6 +131,15 @@ CREATE TABLE IF NOT EXISTS problematic_stories (
 ) ENGINE=InnoDB;
 `;
 
+// Create 'replies' table
+db.query(createRepliesTableQuery, (err) => {
+  if (err) {
+    console.error("Error creating 'replies' table:", err.message);
+  } else {
+    console.log("Table 'replies' is ready.");
+  }
+});
+
 // Initialize database tables
 db.query(createInterceptedTableQuery, (err) => {
   if (err) {
@@ -140,7 +158,7 @@ db.query(createProblematicTableQuery, (err) => {
 });
 
 // POST /intercept - Store intercepted data
-app.post("/intercept", (req, res) => {
+app.post("api/intercept", (req, res) => {
   const { originUrl, interceptedData } = req.body;
   console.log("Received data from:", req.body);
   
@@ -223,7 +241,7 @@ app.post("/intercept", (req, res) => {
 });
 
 // GET /problematic - Retrieve problematic stories
-app.get("/problematic", (req, res) => {
+app.get("api//problematic", (req, res) => {
   const selectQuery = `SELECT * FROM problematic_stories ORDER BY timestamp DESC;`;
 
   db.query(selectQuery, (err, results) => {
@@ -236,9 +254,8 @@ app.get("/problematic", (req, res) => {
   });
 });
 
-
 // POST /replies - Store a reply from the user
-app.post("/replies", (req, res) => {
+app.post("api/replies", (req, res) => {
   const { bbc_ref_number, intercept_id, bbc_reply } = req.body;
 
   // Validation
@@ -261,7 +278,9 @@ app.post("/replies", (req, res) => {
   });
 });
 
-
+// Serve the static test page
+// The static middleware above will automatically serve index.html from the 'public' directory
+// You can access it by navigating to http://localhost:PORT/
 
 // Graceful shutdown
 process.on("SIGINT", () => {
