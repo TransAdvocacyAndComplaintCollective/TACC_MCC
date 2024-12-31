@@ -51,18 +51,4 @@ document.addEventListener('DOMContentLoaded', () => {
       checkStoriesBtn.textContent = 'Check Problematic Stories';
     }
   });
-
-  // Optionally, communicate with background script to get status
-  // For example, you can use browser.runtime.sendMessage to request current status
-  // Here's a simple example assuming background script can respond with status
-  browser.runtime.sendMessage({ action: 'getSendStatus' })
-    .then(response => {
-      if (response && response.status) {
-        updateSendStatus(response.status);
-      }
-    })
-    .catch(error => {
-      console.error('Error getting send status:', error);
-      updateSendStatus('Error');
-    });
 });

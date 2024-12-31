@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "BBC POST Interceptor Plugin",
+  "name": "BBC complaints collector",
   "version": "1.0",
-  "description": "Intercepts specific POST requests from www.bbc.co.uk and forwards the data to another endpoint.",
+  "description": "Intercepts complaints collector requests from BBC and forwards the data to TACC.",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
@@ -20,15 +20,15 @@
   "browser_action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
-      "16": "icons/image.png",
-      "48": "icons/image.png",
-      "128": "icons/image.png"
+      "16": "icons/image-16.png",
+      "48": "icons/image-48.png",
+      "128": "icons/image-128.png"
     }
   },
   "icons": {
-    "16": "icons/image.png",
-    "48": "icons/image.png",
-    "128": "icons/image.png"
+    "16": "icons/image-16.png",
+    "48": "icons/image-48.png",
+    "128": "icons/image-128.png"
   },
   "web_accessible_resources": [
     "confirmation/confirmation.html",
@@ -36,10 +36,9 @@
     "confirmation/confirmation.css",
     "popup/popup.css"
   ],
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
-      "id": "your-addon-id@example.com",
-      "strict_min_version": "42.0"
+      "id": "info@tacc.org.uk"
     }
   }
 }

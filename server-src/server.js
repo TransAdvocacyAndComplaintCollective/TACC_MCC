@@ -5,7 +5,6 @@ const mysql = require("mysql2");
 const crypto = require("crypto");
 const sanitizeHtml = require("sanitize-html");
 const rateLimit = require("express-rate-limit");
-const base62 = require("base62");
 const cors = require('cors');
 
 const app = express();
