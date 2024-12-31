@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload BBC Reply</title>
+  <title>BBC Complaint Responder BETA</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -35,7 +35,7 @@
     input[type="text"],
     input[type="number"],
     textarea {
-      width: 100%;
+      width: 96%;
       padding: 10px;
       margin-bottom: 20px;
       border: 1px solid #ccc;
@@ -52,6 +52,7 @@
     }
 
     textarea {
+      width: 93%;
       height: 150px;
       font-size: 16px;
       background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
@@ -79,8 +80,8 @@
       border: none;
       border-radius: 4px;
       font-size: 16px;
-      cursor: pointer;
       width: 100%;
+      cursor: pointer;
       transition: background-color 0.3s ease-in-out;
     }
 
@@ -105,16 +106,16 @@
   </style>
 </head>
 <body>
-  <h1>Upload BBC Reply</h1>
+  <h1>BBC Complaint Responder BETA</h1>
   <div class="form-container">
     <form id="replyForm">
       <label for="bbcRef">BBC Reference Number:</label>
       <input type="text" id="bbcRef" name="bbcRef" required pattern="\d{5,}" title="BBC Reference Number should be at least 5 digits long.">
 
-      <label for="interceptId">Intercept ID (UUID):</label>
+      <label for="interceptId">User ID:</label>
       <input type="text" id="interceptId" name="interceptId" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid UUID.">
 
-      <label for="bbcReply">BBC Reply:</label>
+      <label for="bbcReply">BBC Response:</label>
       <textarea id="bbcReply" name="bbcReply" rows="4" cols="50" required placeholder="Type your reply here..."></textarea>
 
       <button type="submit">Submit</button>
