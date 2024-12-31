@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload BBC Reply</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .form-container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      transition: all 0.3s ease-in-out;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+      border-color: #4CAF50;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+    }
+
+    textarea {
+      height: 150px;
+      font-size: 16px;
+      background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
+      transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+      padding: 20px;
+      border: 1px solid #ccc;
+    }
+
+    textarea::placeholder {
+      color: #bbb;
+      font-style: italic;
+      transition: color 0.3s ease-in-out;
+    }
+
+    textarea:focus {
+      background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+      padding: 18px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s ease-in-out;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .error-message {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .success-message {
+      color: green;
+      margin-top: 10px;
+    }
+
+    .loading-message {
+      color: orange;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Upload BBC Reply</h1>
+  <div class="form-container">
+    <form id="replyForm">
+      <label for="bbcRef">BBC Reference Number:</label>
+      <input type="text" id="bbcRef" name="bbcRef" required pattern="\d{5,}" title="BBC Reference Number should be at least 5 digits long.">
+
+      <label for="interceptId">Intercept ID (UUID):</label>
+      <input type="text" id="interceptId" name="interceptId" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid UUID.">
+
+      <label for="bbcReply">BBC Reply:</label>
+      <textarea id="bbcReply" name="bbcReply" rows="4" cols="50" required placeholder="Type your reply here..."></textarea>
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="messageContainer"></div>
+  </div>
+
+  <script>
+    // Function to generate a UUID (v4)
+    function generateUUID() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0,
+            v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    document.getElementById('replyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Clear any previous messages
+      const messageContainer = document.getElementById('messageContainer');
+      messageContainer.innerHTML = '';
+
+      const formData = {
+        bbc_ref_number: document.getElementById('bbcRef').value,
+        intercept_id: document.getElementById('interceptId').value || generateUUID(), // Use generated UUID if not entered
+        bbc_reply: document.getElementById('bbcReply').value,
+      };
+
+      // Show loading message
+      const loadingMessage = document.createElement('div');
+      loadingMessage.className = 'loading-message';
+      loadingMessage.textContent = 'Submitting your reply... Please wait.';
+      messageContainer.appendChild(loadingMessage);
+
+      try {
+        const response = await fetch('/api/replies', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+        
+        // Remove loading message
+        loadingMessage.remove();
+
+        if (response.ok) {
+          const successMessage = document.createElement('div');
+          successMessage.className = 'success-message';
+          successMessage.textContent = 'Reply submitted successfully!';
+          messageContainer.appendChild(successMessage);
+        } else {
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message';
+          errorMessage.textContent = `Error: ${result.error}`;
+          messageContainer.appendChild(errorMessage);
+        }
+      } catch (error) {
+        // Remove loading message and show error
+        loadingMessage.remove();
+
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = 'An unexpected error occurred. Please try again later.';
+        messageContainer.appendChild(errorMessage);
+        console.error('Error submitting reply:', error);
+      }
+    });
+  </script>
+</body>
+</html>
