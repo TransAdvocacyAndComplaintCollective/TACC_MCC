@@ -152,7 +152,7 @@ function getSelectedData() {
 // Function to send data to your server's /intercept endpoint
 async function sendDataToServer(selectedData) {
   try {
-    const response = await fetch("http://localhost:5555/api/intercept", {
+    const response = await fetch("https://www.tacc.org.uk/api/intercept", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
