@@ -117,12 +117,16 @@ app.post("/api/intercept", (req, res) => {
   const { originUrl, interceptedData } = req.body;
 
   if (!originUrl || !interceptedData) {
+    console.error("Invalid request body:", req.body);
     return res.status(400).json({ error: "Invalid request body." });
   }
+
   const sanitizedData = Object.fromEntries(
     Object.entries(interceptedData).map(([key, value]) => [key, sanitizeHtml(value || "")])
   );
-  if (!sanitizedData.captcha & sanitizedData.captcha.length < 64) {
+
+  if (!sanitizedData.captcha || sanitizedData.captcha.length < 64) {
+    console.error("Captcha validation failed:", sanitizedData.captcha);
     return res.status(400).json({ error: "Captcha is required." });
   }
 
@@ -135,13 +139,20 @@ app.post("/api/intercept", (req, res) => {
 
   db.query(insertQuery, [id, ...values], (err) => {
     if (err) {
-      console.error("Database insertion error:", err.message);
+      console.error("Database insertion error:", {
+        message: err.message,
+        stack: err.stack,
+        query: insertQuery,
+        values: [id, ...values]
+      });
       return res.status(500).json({ error: "Failed to store data." });
     }
 
+    console.log("Data successfully inserted:", { id, sanitizedData });
     res.status(200).json({ message: "Data stored successfully.", id });
   });
 });
+
 
 // GET request to retrieve intercepted data
 app.get("/api/problematic", (req, res) => {
