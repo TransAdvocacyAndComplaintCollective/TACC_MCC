@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "BBC complaints collector",
-  "version": "1.0",
-  "description": "Intercepts complaints collector requests from BBC and forwards the data to TACC.",
+  "name": "TACC media complaints collector",
+  "version": "0.1.0",
+  "description": "TACC media complaints collector requests from British news sites and forwards the data to TACC.",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
@@ -21,14 +21,12 @@
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/image-16.png",
-      "48": "icons/image-48.png",
-      "128": "icons/image-128.png"
+      "48": "icons/image-48.png"
     }
   },
   "icons": {
     "16": "icons/image-16.png",
-    "48": "icons/image-48.png",
-    "128": "icons/image-128.png"
+    "48": "icons/image-48.png"
   },
   "web_accessible_resources": [
     "confirmation/confirmation.html",
