@@ -85,6 +85,42 @@ const urlParams = new URLSearchParams(window.location.search);
 const originUrl = urlParams.get("originUrl");
 const data = urlParams.get("data") ? decodeURIComponent(urlParams.get("data")) : null;
 
+
+// Function to handle UI changes upon successful submission
+function handleSuccess(complaintId) {
+  // Hide the field selection form
+  const fieldSelection = document.querySelector('.field-selection');
+  if (fieldSelection) {
+    fieldSelection.style.display = 'none';
+  }
+
+  // Disable the Send button to prevent multiple submissions
+  const sendBtn = document.getElementById("sendBtn");
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sent Successfully";
+
+  // Optionally, disable the Cancel button as well
+  const cancelBtn = document.getElementById("cancelBtn");
+  cancelBtn.disabled = true;
+  cancelBtn.style.display = 'none'; // Hide the Cancel button
+
+  // Display a success message with the complaint number and email verification instructions
+  const dataContentEl = document.getElementById("dataContent");
+  if (complaintId) {
+    dataContentEl.innerHTML = `
+      <strong>Success!</strong> Your data has been sent successfully.<br>
+      Your complaint number is: <strong>${complaintId}</strong>.<br><br>
+    `;
+  } else {
+    dataContentEl.innerHTML = `
+      <strong>Success!</strong> Your data has been sent successfully.<br><br>
+    `;
+  }
+  dataContentEl.style.color = "green";
+
+  // Optionally, store a flag in localStorage to prevent future submissions
+}
+
 // Utility function to update content display
 function displayContent(content, isError = false) {
   const dataContentEl = document.getElementById("dataContent");
@@ -188,6 +224,7 @@ async function sendDataToServer(selectedData) {
     // Display success message with complaint number (if available)
     if (responseData.id) {
       alert(`Data sent successfully! Your complaint number is: ${responseData.id}`);
+      handleSuccess(responseData.id);
 
       // ----------------------------------------------------------
       // Store complaint ID and date in local storage as part of an array (bbcComplaints).
