@@ -5,42 +5,47 @@ const mysql = require("mysql2");
 const crypto = require("crypto");
 const sanitizeHtml = require("sanitize-html");
 const rateLimit = require("express-rate-limit");
-const cors = require('cors');
+const cors = require("cors");
 
 const app = express();
 const PORT = process.env.SERVER_PORT || process.env.PORT || 5555;
 
 // Rate limiting to avoid too many requests from a single IP
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests from this IP, please try again later."
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
 });
 
+// Middleware setup
 app.use(cors());
 app.use(limiter);
 app.use(express.json());
 
+// Create a MySQL connection pool
 const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "your_mysql_username",
   password: process.env.DB_PASSWORD || "your_mysql_password",
   database: process.env.DB_NAME || "intercepted_data_db",
   port: process.env.DB_PORT || 3306,
+  connectionLimit: 10, // Adjust based on your needs
 });
 
-// db.connect((err) => {
-//   if (err) {
-//     console.error("Database connection error:", err.message);
-//     process.exit(1);
-//   }
-//   console.log("Connected to MySQL database.");
-// });
+// Test the database connection
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error("Database connection error:", err.message);
+    process.exit(1);
+  }
+  console.log("Connected to MySQL database.");
+  connection.release();
+});
 
 // Helper function to generate human-readable UUID-like ID
 function generateId() {
   const uuid = crypto.randomUUID();
-  console.log("Generated UUID:", uuid);  // Debugging: Log the UUID
+  console.log("Generated UUID:", uuid); // Debugging: Log the UUID
   if (!uuid) {
     throw new Error("UUID generation failed");
   }
@@ -95,22 +100,30 @@ const createTables = () => {
       bbc_reply TEXT,
       timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (intercept_id) REFERENCES intercepted_data(id) ON DELETE CASCADE
-    ) ENGINE=InnoDB;`
+    ) ENGINE=InnoDB;`,
+
+    `CREATE TABLE IF NOT EXISTS problematic_article (
+      URL VARCHAR(255) PRIMARY KEY,
+      title TEXT,
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB;`,
   ];
 
-  queries.forEach(query => {
+  queries.forEach((query) => {
     db.query(query, (err) => {
-      if (err) console.error("Error creating table:", err.message);
-      else console.log("Table created successfully.");
+      if (err) {
+        console.error("Error creating table:", err.message);
+      } else {
+        console.log("Table created or already exists.");
+      }
     });
   });
 };
 
 createTables();
 
-app.use("/api/replay",express.static("public"));
-
-
+// Serve static files for replay endpoint
+app.use("/api/replay", express.static("public"));
 
 // POST request to intercept data
 app.post("/api/intercept", (req, res) => {
@@ -121,19 +134,24 @@ app.post("/api/intercept", (req, res) => {
     return res.status(400).json({ error: "Invalid request body." });
   }
 
-  const sanitizedData = Object.fromEntries(
-    Object.entries(interceptedData).map(([key, value]) => [key, sanitizeHtml(value || "")])
-  );
-
-  if (!sanitizedData.captcha || sanitizedData.captcha.length < 64) {
-    console.error("Captcha validation failed:", sanitizedData.captcha);
-    return res.status(400).json({ error: "Captcha is required." });
+  // Sanitize each field in interceptedData
+  const sanitizedData = {};
+  for (const [key, value] of Object.entries(interceptedData)) {
+    sanitizedData[key] = sanitizeHtml(value || "");
   }
 
+  // Validate captcha
+  if (!sanitizedData.captcha || sanitizedData.captcha.length < 64) {
+    console.error("Captcha validation failed:", sanitizedData.captcha);
+    return res.status(400).json({ error: "Captcha is required and must be valid." });
+  }
+
+  // Remove captcha from data
+  delete sanitizedData.captcha;
+
   const id = generateId();
-  delete sanitizedData.captcha; // Remove captcha field
   const fields = Object.keys(sanitizedData);
-  const values = fields.map(field => sanitizedData[field]);
+  const values = fields.map((field) => sanitizedData[field]);
   const placeholders = fields.map(() => "?").join(", ");
   const insertQuery = `INSERT INTO intercepted_data (id, ${fields.join(", ")}) VALUES (?, ${placeholders});`;
 
@@ -143,7 +161,7 @@ app.post("/api/intercept", (req, res) => {
         message: err.message,
         stack: err.stack,
         query: insertQuery,
-        values: [id, ...values]
+        values: [id, ...values],
       });
       return res.status(500).json({ error: "Failed to store data." });
     }
@@ -153,10 +171,10 @@ app.post("/api/intercept", (req, res) => {
   });
 });
 
-
-// GET request to retrieve intercepted data
+// GET request to retrieve problematic articles
 app.get("/api/problematic", (req, res) => {
-  db.query("SELECT * FROM intercepted_data ORDER BY timestamp DESC;", (err, results) => {
+  const fetchQuery = "SELECT * FROM problematic_article ORDER BY timestamp DESC;";
+  db.query(fetchQuery, (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);
       return res.status(500).json({ error: "Failed to fetch data." });
@@ -188,6 +206,7 @@ app.post("/api/replies", (req, res) => {
   });
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });

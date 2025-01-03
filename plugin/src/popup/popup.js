@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("help-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    const helpUrl = browser.runtime.getURL("help/help.html");
+    browser.tabs.create({ url: helpUrl });
+  })
+
   // -----------------------------
   // Part 1: Complaints Table
   // -----------------------------
@@ -15,30 +21,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Error loading complaints from storage:", error);
     }
 
-    /**
-     * Formats a given date string to UK date format with 24-hour time.
-     * @param {string} dateString - The date string to format.
-     * @returns {string} - Formatted date string.
-     */
-    function formatDateToUK(dateString) {
-      if (!dateString) return "N/A";
-      const date = new Date(dateString);
-      if (isNaN(date)) return "Invalid Date";
-
-      // Define formatting options for UK locale with 24-hour time
-      const options = {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false, // 24-hour format
-      };
-
-      return date.toLocaleString('en-GB', options);
-    }
-
     // Function to render the table
     function renderTable() {
       // Clear out existing table rows
@@ -48,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Display a placeholder row if no complaints exist
         const placeholderRow = document.createElement("tr");
         const placeholderCell = document.createElement("td");
-        placeholderCell.colSpan = 4; // Matches the total number of columns
+        placeholderCell.colSpan = 4; // Updated to match the total number of columns
         placeholderCell.textContent = "No complaints stored.";
         placeholderRow.appendChild(placeholderCell);
         tableBody.appendChild(placeholderRow);
@@ -71,7 +53,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // **3. Date Cell**
         const dateCell = document.createElement("td");
-        dateCell.textContent = formatDateToUK(complaint.dateRetrieved);
+        dateCell.textContent = complaint.dateRetrieved 
+          ? new Date(complaint.dateRetrieved).toLocaleString()
+          : "N/A";
         row.appendChild(dateCell);
 
         // **4. Action Cell (Delete Button)**
@@ -114,18 +98,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Only proceed if these elements exist in DOM
   if (sendStatus && checkStoriesBtn && storiesList) {
-    /**
-     * Updates the send status text.
-     * @param {string} status - The status message to display.
-     */
+    // Function to update the send status
     function updateSendStatus(status) {
       sendStatus.textContent = status;
     }
 
-    /**
-     * Displays a list of problematic stories.
-     * @param {Array} stories - Array of story objects.
-     */
+    // Function to display problematic stories
     function displayStories(stories) {
       storiesList.innerHTML = ""; // Clear previous list
       if (!stories || stories.length === 0) {

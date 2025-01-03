@@ -6,6 +6,26 @@ let pendingData = null;
 let pendingOriginUrl = null;
 let sendStatus = 'Idle'; // Track the current status
 
+// Function to open the init page on initial launch
+function openInitPage() {
+  const initUrl = browser.runtime.getURL("init/init.html");
+  browser.tabs.create({ url: initUrl }, (tab) => {
+    if (browser.runtime.lastError) {
+      console.error("Error opening init page:", browser.runtime.lastError);
+    } else {
+      console.log("Init page opened successfully:", tab);
+    }
+  });
+}
+
+// Listen for the extension installation event
+browser.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    // Open the init page only on first installation
+    openInitPage();
+  }
+});
+
 // Listen for POST requests from BBC
 browser.webRequest.onBeforeRequest.addListener(
   async (details) => {
