@@ -180,7 +180,6 @@ async function sendDataToServer(selectedData) {
       alert("Data sent successfully, but no complaint number was returned.");
     }
 
-    window.close(); // Close the tab on success
   } catch (error) {
     console.error("Error sending data to server:", error);
     alert("An error occurred while sending data. Please check the console for details.");
