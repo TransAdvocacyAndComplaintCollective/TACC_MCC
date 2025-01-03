@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "BBC complaints collector",
-  "version": "1.0",
-  "description": "Intercepts complaints collector requests from BBC and forwards the data to TACC.",
+  "name": "TACC media complaints collector",
+  "version": "0.1.0",
+  "description": "TACC media complaints collector requests from British news sites and forwards the data to TACC.",
   "permissions": [
     "webRequest",
     "webRequestBlocking",

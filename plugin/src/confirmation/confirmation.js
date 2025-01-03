@@ -187,7 +187,7 @@ async function sendDataToServer(selectedData) {
 
     // Display success message with complaint number (if available)
     if (responseData.id) {
-      alert(`Data sent successfully! Your TACC Record ID is: ${responseData.id}`);
+      alert(`Data sent successfully! Your TACC Record ID is:\n\n${responseData.id}`);
 
       // ----------------------------------------------------------
       // Store complaint ID and date in local storage as part of an array (bbcComplaints).
