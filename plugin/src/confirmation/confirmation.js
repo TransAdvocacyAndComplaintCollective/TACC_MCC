@@ -1,3 +1,5 @@
+// confirmation.js
+
 // List of fields to manage
 const fields = [
   "originUrl",
@@ -32,7 +34,7 @@ const fields = [
   "title",
   "transmissiondate",
   "transmissiontime",
-  "under18", //TODO if under 18 then trun off personal data like email, firstname, lastname
+  // "under18": { name: "Under 18", optional: false },
   "verifyform",
   "complaint_nature",
   "complaint_nature_sounds",
@@ -104,7 +106,8 @@ function initializeFieldSelection(parsedData) {
       checkbox.id = field;
       checkbox.name = field;
       checkbox.value = "true";
-      checkbox.disabled = !fieldDetails[field]?.optional; // Disable optional fields
+      // Disable checkbox for fields that are not optional
+      checkbox.disabled = !fieldDetails[field]?.optional;
       checkbox.checked = true; // Default to checked
 
       // Append checkbox to label
@@ -137,7 +140,6 @@ function getSelectedData() {
   fields.forEach(field => {
     const checkbox = document.getElementById(field);
     if (checkbox && checkbox.checked && parsedformData.hasOwnProperty(field)) {
-      // Corrected the reference from parsedData.[field] to parsedformData[field]
       selectedData[field] = parsedformData[field];
     }
   });
@@ -176,6 +178,37 @@ async function sendDataToServer(selectedData) {
     // Display success message with complaint number (if available)
     if (responseData.id) {
       alert(`Data sent successfully! Your complaint number is: ${responseData.id}`);
+
+      // ----------------------------------------------------------
+      // UPDATED CODE: Store complaint ID and date in local storage
+      // as part of an array (bbcComplaints).
+      // ----------------------------------------------------------
+      try {
+        // 1) Retrieve existing array from storage
+        let { bbcComplaints } = await browser.storage.local.get('bbcComplaints');
+        if (!bbcComplaints) {
+          bbcComplaints = [];
+        }
+
+        // 2) Build new complaint object
+        const newComplaint = {
+          id: responseData.id,
+          dateRetrieved: Date.now(), // or new Date().toISOString()
+        };
+
+        // 3) Add to array
+        bbcComplaints.push(newComplaint);
+        console.log("New complaint stored in local storage:", newComplaint);
+
+        // 4) Save updated array back to storage
+        await browser.storage.local.set({ bbcComplaints });
+        console.log("Complaint ID stored successfully in local storage (array).");
+
+      } catch (err) {
+        console.error("Error storing complaint ID:", err);
+      }
+      // ----------------------------------------------------------
+
     } else {
       alert("Data sent successfully, but no complaint number was returned.");
     }
