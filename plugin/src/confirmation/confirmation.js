@@ -8,8 +8,8 @@ const fields = [
   "dateproblemstarted",
   "description",
   "emailaddress", // Optional
-  "firstname",          // Optional
-  "lastname",           // Optional
+  "firstname",    // Optional
+  "lastname",     // Optional
   "salutation",
   "generalissue1",
   "intro_text",
@@ -34,7 +34,7 @@ const fields = [
   "title",
   "transmissiondate",
   "transmissiontime",
-  // "under18": { name: "Under 18", optional: false },
+  "under18",  // <-- Un-commented
   "verifyform",
   "complaint_nature",
   "complaint_nature_sounds",
@@ -74,7 +74,7 @@ const fieldDetails = {
   "title": { name: "Title", optional: false },
   "transmissiondate": { name: "Transmission Date", optional: false },
   "transmissiontime": { name: "Transmission Time", optional: false },
-  // "under18": { name: "Under 18", optional: false },
+  "under18": { name: "Under 18", optional: false }, // <-- Un-commented
   "verifyform": { name: "Verify Form", optional: false },
   "complaint_nature": { name: "Complaint Nature", optional: false },
   "complaint_nature_sounds": { name: "Complaint Nature (Sounds)", optional: false },
@@ -143,11 +143,21 @@ function getSelectedData() {
       selectedData[field] = parsedformData[field];
     }
   });
-  console.log("Selected Data:", selectedData);
-  // Always include originUrl
+  
+  // ----------------------------------------------------------
+  // If the user is under 18, remove emailaddress, firstname, and lastname
+  // ----------------------------------------------------------
+  if (selectedData.under18 === "true" || selectedData.under18 === true) {
+    delete selectedData.emailaddress;
+    delete selectedData.firstname;
+    delete selectedData.lastname;
+  }
+
+  // Always include originUrl if we have it
   if (originUrl) {
     selectedData.originUrl = originUrl;
   }
+  console.log("Selected Data:", selectedData);
   return selectedData;
 }
 
@@ -180,8 +190,7 @@ async function sendDataToServer(selectedData) {
       alert(`Data sent successfully! Your complaint number is: ${responseData.id}`);
 
       // ----------------------------------------------------------
-      // UPDATED CODE: Store complaint ID and date in local storage
-      // as part of an array (bbcComplaints).
+      // Store complaint ID and date in local storage as part of an array (bbcComplaints).
       // ----------------------------------------------------------
       try {
         // 1) Retrieve existing array from storage
@@ -189,9 +198,11 @@ async function sendDataToServer(selectedData) {
         if (!bbcComplaints) {
           bbcComplaints = [];
         }
-
+        console.log("Existing complaints stored in local storage:", bbcComplaints);
+        
         // 2) Build new complaint object
         const newComplaint = {
+          subject: selectedData.title,
           id: responseData.id,
           dateRetrieved: Date.now(), // or new Date().toISOString()
         };
@@ -207,7 +218,6 @@ async function sendDataToServer(selectedData) {
       } catch (err) {
         console.error("Error storing complaint ID:", err);
       }
-      // ----------------------------------------------------------
 
     } else {
       alert("Data sent successfully, but no complaint number was returned.");
@@ -233,6 +243,7 @@ if (originUrl && data) {
   try {
     parsedData = JSON.parse(data);
     parsedformData = parsedData.formData || {}; // Ensure formData exists
+    console.log("Parsed Data:", parsedData);
     initializeFieldSelection(parsedformData);
     console.log("Origin URL:", originUrl);
     console.log("Parsed Data:", parsedformData);
