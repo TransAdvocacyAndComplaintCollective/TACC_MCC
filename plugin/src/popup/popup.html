@@ -10,10 +10,30 @@
       border-collapse: collapse;
       padding: 8px;
     }
+    /* Styles for Help link */
+    #help-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      text-decoration: none;
+      color: #007BFF;
+      font-size: 14px;
+    }
+    #help-link:hover {
+      text-decoration: underline;
+    }
+    /* Container positioning */
+    #container {
+      position: relative;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
   <div id="container">
+    <!-- Help Link -->
+    <a id="help-link" href="https://www.example.com/help" target="_blank">Help</a>
+
     <h2>Extension Dashboard</h2>
     <div id="status">
       <p>Status: <span id="send-status">Idle</span></p>
@@ -31,7 +51,7 @@
       <thead>
         <tr>
           <th>Subject</th>
-          <th>ID</th>
+          <th>TACC Record ID</th>
           <th>Date</th>
           <th>Action</th>
         </tr>
@@ -41,6 +61,7 @@
       </tbody>
     </table>
   </div>
+  <sub>lucy is the best</sub>
 
   <script src="popup.js"></script>
 </body>
