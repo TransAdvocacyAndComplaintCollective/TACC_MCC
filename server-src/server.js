@@ -21,7 +21,7 @@ app.use(cors());
 app.use(limiter);
 app.use(express.json());
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "your_mysql_username",
   password: process.env.DB_PASSWORD || "your_mysql_password",
@@ -29,13 +29,13 @@ const db = mysql.createConnection({
   port: process.env.DB_PORT || 3306,
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("Database connection error:", err.message);
-    process.exit(1);
-  }
-  console.log("Connected to MySQL database.");
-});
+// db.connect((err) => {
+//   if (err) {
+//     console.error("Database connection error:", err.message);
+//     process.exit(1);
+//   }
+//   console.log("Connected to MySQL database.");
+// });
 
 // Helper function to generate human-readable UUID-like ID
 function generateId() {

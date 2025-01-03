@@ -5,10 +5,10 @@ const fields = [
   "captcha",
   "dateproblemstarted",
   "description",
-  "emailaddress",
+  "emailaddress", // Optional
   "firstname",          // Optional
   "lastname",           // Optional
-  "salutation",         // Optional
+  "salutation",
   "generalissue1",
   "intro_text",
   "iswelsh",
@@ -32,7 +32,7 @@ const fields = [
   "title",
   "transmissiondate",
   "transmissiontime",
-  "under18",
+  "under18", //TODO if under 18 then trun off personal data like email, firstname, lastname
   "verifyform",
   "complaint_nature",
   "complaint_nature_sounds",
