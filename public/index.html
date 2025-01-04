@@ -297,6 +297,7 @@
             // Optionally, you can redirect the user or hide the form
             const formContainer = document.querySelector('.form-container');
             formContainer.innerHTML = '<p>Thank you for your submission.</p>';
+            customModal.style.display = 'none';
           };
         } else {
           // Display server-side validation errors
