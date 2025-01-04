@@ -106,14 +106,14 @@ function handleSuccess(complaintId) {
 
   // Optionally, disable the Cancel button as well
   const cancelBtn = document.getElementById("cancelBtn");
-  cancelBtn.textContent = "close page";
-  cancelBtn.color = "green";
+  cancelBtn.textContent = "Close Page";
+  cancelBtn.style.backgroundColor = "#4caf50";
 
   // Display a success message with the complaint number and email verification instructions
   const dataContentEl = document.getElementById("dataContent");
   if (complaintId) {
     dataContentEl.innerHTML = `
-      <strong>Success!</strong> Your data has been sent successfully.<br>
+      <span id="success"><strong>Success!</strong> Your data has been sent successfully.</span><br>
       Your complaint number is: <strong>${complaintId}</strong>.<br><br>
     `;
   } else {
