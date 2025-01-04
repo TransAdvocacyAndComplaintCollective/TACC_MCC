@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
   <title>Media Complaint Response Form</title>
   <style>
@@ -16,12 +18,16 @@
 
     h1 {
       text-align: center;
-
+      margin-top: 20px;
     }
 
     .form-container {
+      max-width: 600px;
+      padding: 20px;
+      margin: 40px auto;
+      background-color: #fff;
       border-radius: 0.375rem;
-      margin: 0 auto;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     label {
@@ -31,7 +37,6 @@
     }
 
     input[type="text"],
-    input[type="number"],
     textarea {
       width: 100%;
       padding: 10px;
@@ -43,16 +48,13 @@
     }
 
     input[type="text"]:focus,
-    input[type="number"]:focus,
     textarea:focus {
       border-color: #4CAF50;
       box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
     }
 
     textarea {
-      max-width: 100%;
       height: 250px;
-      font-size: 16px;
       background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
       transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
       padding: 20px;
@@ -101,20 +103,30 @@
       color: orange;
       margin-top: 10px;
     }
+
+    .response-prompt {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .response-prompt button {
+      width: auto;
+      margin: 5px;
+    }
   </style>
 </head>
 <body>
   <h1>Media Complaint Response Form</h1>
-  <div class="form-container embed-responsive">
-    <form id="replyForm">
+  <div class="form-container" id="formContainer">
+    <form id="replyForm" novalidate>
       <label for="bbcRef">BBC Reference Number:</label>
       <input type="text" id="bbcRef" name="bbcRef" required pattern="^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$" title="BBC Reference Number should follow the format AAA-1234567-ABC123.">
 
       <label for="interceptId">TACC Record ID:</label>
-      <input type="text" id="interceptId" name="TACC Record ID" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID.">
+      <input type="text" id="interceptId" name="interceptId" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID.">
 
       <label for="bbcReply">Complaint Response:</label>
-      <textarea id="bbcReply" name="bbcReply" rows="4" cols="50" required placeholder="Type your reply here..."></textarea>
+      <textarea id="bbcReply" name="bbcReply" required placeholder="Type your reply here..."></textarea>
 
       <button type="submit">Submit</button>
     </form>
@@ -132,6 +144,37 @@
       });
     }
 
+    // Function to validate form fields manually
+    function validateForm(form) {
+      let isValid = true;
+      const errors = [];
+
+      // BBC Reference Number validation
+      const bbcRef = form.bbcRef.value.trim();
+      const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
+      if (!bbcRefPattern.test(bbcRef)) {
+        isValid = false;
+        errors.push("BBC Reference Number should follow the format AAA-1234567-ABC123.");
+      }
+
+      // TACC Record ID validation
+      const interceptId = form.interceptId.value.trim();
+      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      if (!interceptIdPattern.test(interceptId)) {
+        isValid = false;
+        errors.push("Please enter a valid TACC Record ID.");
+      }
+
+      // Complaint Response validation
+      const bbcReply = form.bbcReply.value.trim();
+      if (bbcReply.length === 0) {
+        isValid = false;
+        errors.push("Complaint Response cannot be empty.");
+      }
+
+      return { isValid, errors };
+    }
+
     document.getElementById('replyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -139,10 +182,24 @@
       const messageContainer = document.getElementById('messageContainer');
       messageContainer.innerHTML = '';
 
+      const form = e.target;
+      const validation = validateForm(form);
+
+      if (!validation.isValid) {
+        // Display validation errors
+        validation.errors.forEach(error => {
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message';
+          errorMessage.textContent = error;
+          messageContainer.appendChild(errorMessage);
+        });
+        return; // Stop submission
+      }
+
       const formData = {
-        bbc_ref_number: document.getElementById('bbcRef').value,
-        intercept_id: document.getElementById('interceptId').value, // Use generated UUID if not entered
-        bbc_reply: document.getElementById('bbcReply').value,
+        bbc_ref_number: form.bbcRef.value.trim(),
+        intercept_id: form.interceptId.value.trim(), // Use entered ID
+        bbc_reply: form.bbcReply.value.trim(),
       };
 
       // Show loading message
@@ -161,19 +218,50 @@
         });
 
         const result = await response.json();
-        
+
         // Remove loading message
         loadingMessage.remove();
 
         if (response.ok) {
+          // Show success message
           const successMessage = document.createElement('div');
           successMessage.className = 'success-message';
           successMessage.textContent = 'Reply submitted successfully!';
           messageContainer.appendChild(successMessage);
+
+          // Show prompt to send another reply
+          const promptDiv = document.createElement('div');
+          promptDiv.className = 'response-prompt';
+
+          const promptText = document.createElement('p');
+          promptText.textContent = 'Do you want to send another reply?';
+          promptDiv.appendChild(promptText);
+
+          const yesButton = document.createElement('button');
+          yesButton.textContent = 'Yes';
+          yesButton.className = 'btn btn-primary';
+          yesButton.onclick = () => {
+            // Reset the form and messages
+            form.reset();
+            messageContainer.innerHTML = '';
+          };
+          promptDiv.appendChild(yesButton);
+
+          const noButton = document.createElement('button');
+          noButton.textContent = 'No';
+          noButton.className = 'btn btn-secondary';
+          noButton.onclick = () => {
+            // Optionally, you can redirect the user or hide the form
+            formContainer.innerHTML = '<p>Thank you for your submission.</p>';
+          };
+          promptDiv.appendChild(noButton);
+
+          messageContainer.appendChild(promptDiv);
         } else {
+          // Display server-side validation errors
           const errorMessage = document.createElement('div');
           errorMessage.className = 'error-message';
-          errorMessage.textContent = `Error: ${result.error}`;
+          errorMessage.textContent = `Error: ${result.error || 'An error occurred while submitting your reply.'}`;
           messageContainer.appendChild(errorMessage);
         }
       } catch (error) {
