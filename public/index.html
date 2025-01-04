@@ -108,7 +108,7 @@
   <div class="form-container embed-responsive">
     <form id="replyForm">
       <label for="bbcRef">BBC Reference Number:</label>
-      <input type="text" id="bbcRef" name="bbcRef" required pattern="\d{5,}" title="BBC Reference Number should be at least 5 digits long.">
+      <input type="text" id="bbcRef" name="bbcRef" required pattern="^[A-Z]{3}-[A-Z0-9]{7}-[A-Z0-9]{6}$" title="BBC Reference Number should be at least 5 digits long.">
 
       <label for="interceptId">TACC Record ID:</label>
       <input type="text" id="interceptId" name="TACC Record ID" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID.">
@@ -122,14 +122,59 @@
     <div id="messageContainer"></div>
   </div>
 
+
+  <!-- Bootstrap Modal -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Submit Another Reply?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Do you want to send another reply?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" id="modalYes">Yes</button>
+          <button type="button" class="btn btn-secondary" id="modalNo" data-bs-dismiss="modal">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle (Includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
   <script>
-    // Function to generate a UUID (v4)
-    function generateUUID() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0,
-            v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
+    // Function to validate form fields manually
+    function validateForm(form) {
+      let isValid = true;
+      const errors = [];
+
+      // BBC Reference Number validation
+      const bbcRef = form.bbcRef.value.trim();
+      const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
+      if (!bbcRefPattern.test(bbcRef)) {
+        isValid = false;
+        errors.push("BBC Reference Number should follow the format AAA-1234567-ABC123.");
+      }
+
+      // TACC Record ID validation
+      const interceptId = form.interceptId.value.trim();
+      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      if (!interceptIdPattern.test(interceptId)) {
+        isValid = false;
+        errors.push("Please enter a valid TACC Record ID.");
+      }
+
+      // Complaint Response validation
+      const bbcReply = form.bbcReply.value.trim();
+      if (bbcReply.length === 0) {
+        isValid = false;
+        errors.push("Complaint Response cannot be empty.");
+      }
+
+      return { isValid, errors };
     }
 
     document.getElementById('replyForm').addEventListener('submit', async (e) => {
@@ -139,10 +184,24 @@
       const messageContainer = document.getElementById('messageContainer');
       messageContainer.innerHTML = '';
 
+      const form = e.target;
+      const validation = validateForm(form);
+
+      if (!validation.isValid) {
+        // Display validation errors
+        validation.errors.forEach(error => {
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message';
+          errorMessage.textContent = error;
+          messageContainer.appendChild(errorMessage);
+        });
+        return; // Stop submission
+      }
+
       const formData = {
-        bbc_ref_number: document.getElementById('bbcRef').value,
-        intercept_id: document.getElementById('interceptId').value || generateUUID(), // Use generated UUID if not entered
-        bbc_reply: document.getElementById('bbcReply').value,
+        bbc_ref_number: form.bbcRef.value.trim(),
+        intercept_id: form.interceptId.value.trim(),
+        bbc_reply: form.bbcReply.value.trim(),
       };
 
       // Show loading message
@@ -161,19 +220,25 @@
         });
 
         const result = await response.json();
-        
+
         // Remove loading message
         loadingMessage.remove();
 
         if (response.ok) {
+          // Show success message
           const successMessage = document.createElement('div');
           successMessage.className = 'success-message';
           successMessage.textContent = 'Reply submitted successfully!';
           messageContainer.appendChild(successMessage);
+
+          // Show confirmation modal
+          const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+          confirmationModal.show();
         } else {
+          // Display server-side validation errors
           const errorMessage = document.createElement('div');
           errorMessage.className = 'error-message';
-          errorMessage.textContent = `Error: ${result.error}`;
+          errorMessage.textContent = `Error: ${result.error || 'An error occurred while submitting your reply.'}`;
           messageContainer.appendChild(errorMessage);
         }
       } catch (error) {
@@ -187,6 +252,45 @@
         console.error('Error submitting reply:', error);
       }
     });
+
+    // Modal Functionality
+    const modalYes = document.getElementById('modalYes');
+    const modalNo = document.getElementById('modalNo');
+    const replyForm = document.getElementById('replyForm');
+    const messageContainer = document.getElementById('messageContainer');
+
+    modalYes.addEventListener('click', () => {
+      // Reset the form and messages
+      replyForm.reset();
+      messageContainer.innerHTML = '';
+      // Hide the modal
+      const confirmationModal = bootstrap.Modal.getInstance(document.getElementById('confirmationModal'));
+      confirmationModal.hide();
+    });
+
+    modalNo.addEventListener('click', () => {
+      // Optionally, you can redirect the user or hide the form
+      const formContainer = document.querySelector('.form-container');
+      formContainer.innerHTML = '<p class="text-center mt-4">Thank you for your submission.</p>';
+    });
+
+    // Optional: Real-time validation feedback using Bootstrap's validation classes
+    (function () {
+      'use strict'
+
+      const forms = document.querySelectorAll('#replyForm')
+
+      Array.from(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+
+          form.classList.add('was-validated')
+        }, false)
+      })
+    })()
   </script>
-</body>
+  </body>
 </html>
