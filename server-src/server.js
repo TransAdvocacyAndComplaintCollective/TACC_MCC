@@ -94,7 +94,7 @@ const createTables = () => {
     ) ENGINE=InnoDB;`,
 
     `CREATE TABLE IF NOT EXISTS replies (
-      id VARCHAR(36) PRIMARY KEY,
+      id INT AUTO_INCREMENT PRIMARY KEY,
       bbc_ref_number VARCHAR(255) NOT NULL,
       intercept_id VARCHAR(36) NOT NULL,
       bbc_reply TEXT,
@@ -193,13 +193,13 @@ app.post("/api/replies", (req, res) => {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
-  // Optional: Validate BBC Reference Number format
+  // Validate BBC Reference Number format
   const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
   if (!bbcRefPattern.test(bbc_ref_number)) {
     return res.status(400).json({ error: "Invalid BBC Reference Number format." });
   }
 
-  // Optional: Validate intercept_id format (UUID v4)
+  // Validate intercept_id format (UUID v4)
   const uuidV4Pattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
   if (!uuidV4Pattern.test(intercept_id)) {
     return res.status(400).json({ error: "Invalid TACC Record ID format." });
@@ -218,21 +218,19 @@ app.post("/api/replies", (req, res) => {
     }
 
     // Proceed to insert the reply since intercept_id is valid
-    const id = generateId();
     const sanitizedReply = sanitizeHtml(bbc_reply);
-    const insertReplyQuery = `INSERT INTO replies (id, bbc_ref_number, intercept_id, bbc_reply) VALUES (?, ?, ?, ?);`;
+    const insertReplyQuery = `INSERT INTO replies (bbc_ref_number, intercept_id, bbc_reply) VALUES (?, ?, ?);`;
 
-    db.query(insertReplyQuery, [id, bbc_ref_number, intercept_id, sanitizedReply], (insertErr) => {
+    db.query(insertReplyQuery, [bbc_ref_number, intercept_id, sanitizedReply], (insertErr, insertResult) => {
       if (insertErr) {
         console.error("Error storing reply:", insertErr.message);
-        return res.status(500).json({ error: "Failed to store reply. ", insertErr: insertErr.message });
+        return res.status(500).json({ error: "Failed to store reply.", details: insertErr.message });
       }
 
-      res.status(200).json({ message: "Reply stored successfully.", id });
+      res.status(200).json({ message: "Reply stored successfully.", id: insertResult.insertId });
     });
   });
 });
-
 
 // Start the server
 app.listen(PORT, () => {
