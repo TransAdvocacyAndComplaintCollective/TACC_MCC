@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  showEasterEgg();
   document.getElementById("help-link").addEventListener("click", (e) => {
     e.preventDefault();
     const helpUrl = browser.runtime.getURL("help/help.html");
@@ -151,3 +152,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
+
+
+
+const showEasterEgg = () => {
+  const version = document.getElementById("version");
+  if (navigator.toUpperCase().indexOf('MAC') < 0) {
+    return;
+  }
+  const randomNumber = Math.floor(Math.random() * 100) + 1;
+  if (randomNumber !== 42) {
+    return;
+  }
+  const date = new Date();
+  if (date.getMonth() === 2 && date.getDate() === 31) {
+    version.textContent = "Hoping having a good Transgender Day of Visibility!";
+    return;
+  }
+
+  const randomNumber2 = Math.floor(Math.random() * 10) + 1;
+  // Store messages in an object or array
+  const messages = {
+    1: "You're a star!",
+    2: "You're doing great!",
+    3: "You're amazing!",
+    4: "lucy is the best!",
+    5: "You're a legend!",
+    6: "You're a hero!",
+    7: "Life the universe and everything!",
+    8: "You're a superstar!",
+    9: "Lucy is the Best!",
+    10: "You're a hero!"
+  };
+
+  version.textContent = messages[randomNumber2];
+};
