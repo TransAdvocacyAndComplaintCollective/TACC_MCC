@@ -8,8 +8,8 @@ const fields = [
   "dateproblemstarted",
   "description",
   "emailaddress", // Optional
-  "firstname",    // Optional
-  "lastname",     // Optional
+  "firstname", // Optional
+  "lastname", // Optional
   "salutation",
   "generalissue1",
   "intro_text",
@@ -34,7 +34,7 @@ const fields = [
   "title",
   "transmissiondate",
   "transmissiontime",
-  "under18",  // <-- Un-commented
+  "under18", // <-- Un-commented
   "verifyform",
   "complaint_nature",
   "complaint_nature_sounds",
@@ -42,67 +42,72 @@ const fields = [
 
 // Mapping of fields to display names and optional status
 const fieldDetails = {
-  "originUrl": { name: "Origin URL", optional: false },
-  "previous_complaint": { name: "Previous Complaint", optional: false },
-  "captcha": { name: "Captcha", optional: false },
-  "dateproblemstarted": { name: "Date Problem Started", optional: false },
-  "description": { name: "Description", optional: false },
-  "emailaddress": { name: "Email Address", optional: true },
-  "firstname": { name: "First Name", optional: true },
-  "lastname": { name: "Last Name", optional: true },
-  "salutation": { name: "Salutation", optional: true },
-  "generalissue1": { name: "General Issue", optional: false },
-  "intro_text": { name: "Introduction Text", optional: false },
-  "iswelsh": { name: "Is Welsh", optional: false },
-  "liveorondemand": { name: "Live or On-Demand", optional: false },
-  "localradio": { name: "Local Radio", optional: false },
-  "make": { name: "Make", optional: false },
-  "moderation_text": { name: "Moderation Text", optional: false },
-  "network": { name: "Network", optional: false },
-  "outside_the_uk": { name: "Outside the UK", optional: false },
-  "platform": { name: "Platform", optional: false },
-  "programme": { name: "Programme", optional: false },
-  "programmeid": { name: "Programme ID", optional: false },
-  "reception_text": { name: "Reception Text", optional: false },
-  "redbuttonfault": { name: "Red Button Fault", optional: false },
-  "region": { name: "Region", optional: false },
-  "responserequired": { name: "Response Required", optional: false },
-  "servicetv": { name: "Service TV", optional: false },
-  "sounds_text": { name: "Sounds Text", optional: false },
-  "sourceurl": { name: "Source URL", optional: false },
-  "subject": { name: "Subject", optional: false },
-  "title": { name: "Title", optional: false },
-  "transmissiondate": { name: "Transmission Date", optional: false },
-  "transmissiontime": { name: "Transmission Time", optional: false },
-  "under18": { name: "Under 18", optional: false }, // <-- Un-commented
-  "verifyform": { name: "Verify Form", optional: false },
-  "complaint_nature": { name: "Complaint Nature", optional: false },
-  "complaint_nature_sounds": { name: "Complaint Nature (Sounds)", optional: false },
+  originUrl: { name: "Origin URL", optional: false },
+  previous_complaint: { name: "Previous Complaint", optional: false },
+  captcha: { name: "Captcha", optional: false },
+  dateproblemstarted: { name: "Date Problem Started", optional: false },
+  description: { name: "Description", optional: false },
+  emailaddress: { name: "Email Address", optional: true },
+  firstname: { name: "First Name", optional: true },
+  lastname: { name: "Last Name", optional: true },
+  salutation: { name: "Salutation", optional: true },
+  generalissue1: { name: "General Issue", optional: false },
+  intro_text: { name: "Introduction Text", optional: false },
+  iswelsh: { name: "Is Welsh", optional: false },
+  liveorondemand: { name: "Live or On-Demand", optional: false },
+  localradio: { name: "Local Radio", optional: false },
+  make: { name: "Make", optional: false },
+  moderation_text: { name: "Moderation Text", optional: false },
+  network: { name: "Network", optional: false },
+  outside_the_uk: { name: "Outside the UK", optional: false },
+  platform: { name: "Platform", optional: false },
+  programme: { name: "Programme", optional: false },
+  programmeid: { name: "Programme ID", optional: false },
+  reception_text: { name: "Reception Text", optional: false },
+  redbuttonfault: { name: "Red Button Fault", optional: false },
+  region: { name: "Region", optional: false },
+  responserequired: { name: "Response Required", optional: false },
+  servicetv: { name: "Service TV", optional: false },
+  sounds_text: { name: "Sounds Text", optional: false },
+  sourceurl: { name: "Source URL", optional: false },
+  subject: { name: "Subject", optional: false },
+  title: { name: "Title", optional: false },
+  transmissiondate: { name: "Transmission Date", optional: false },
+  transmissiontime: { name: "Transmission Time", optional: false },
+  under18: { name: "Under 18", optional: false }, // <-- Un-commented
+  verifyform: { name: "Verify Form", optional: false },
+  complaint_nature: { name: "Complaint Nature", optional: false },
+  complaint_nature_sounds: {
+    name: "Complaint Nature (Sounds)",
+    optional: false,
+  },
 };
 
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const originUrl = urlParams.get("originUrl");
-const data = urlParams.get("data") ? decodeURIComponent(urlParams.get("data")) : null;
-
+const data = urlParams.get("data")
+  ? decodeURIComponent(urlParams.get("data"))
+  : null;
 
 // Function to handle UI changes upon successful submission
 function handleSuccess(complaintId) {
   // Hide the field selection form
-  const fieldSelection = document.querySelector('.field-selection');
+  const fieldSelection = document.querySelector(".field-selection");
   if (fieldSelection) {
-    fieldSelection.style.display = 'none';
+    fieldSelection.style.display = "none";
   }
 
   // Disable the Send button to prevent multiple submissions
   const sendBtn = document.getElementById("sendBtn");
+
   sendBtn.disabled = true;
-  sendBtn.textContent = "Sent Successfully";
+  sendBtn.style.display = "none";
 
   // Optionally, disable the Cancel button as well
   const cancelBtn = document.getElementById("cancelBtn");
-  cancelBtn.disabled = true;
-  cancelBtn.style.display = 'none'; // Hide the Cancel button
+  cancelBtn.textContent = "close page";
+  cancelBtn.color = "green";
 
   // Display a success message with the complaint number and email verification instructions
   const dataContentEl = document.getElementById("dataContent");
@@ -116,7 +121,6 @@ function handleSuccess(complaintId) {
       <strong>Success!</strong> Your data has been sent successfully.<br><br>
     `;
   }
-  dataContentEl.style.color = "green";
 
   // Optionally, store a flag in localStorage to prevent future submissions
 }
@@ -132,11 +136,11 @@ function displayContent(content, isError = false) {
 function initializeFieldSelection(parsedData) {
   const form = document.getElementById("fieldsForm");
   console.log("Initializing field selection form...", parsedData);
-  fields.forEach(field => {
+  fields.forEach((field) => {
     // Only create checkbox if the field exists in the data
     if (parsedData.hasOwnProperty(field)) {
       const label = document.createElement("label");
-      
+
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.id = field;
@@ -173,13 +177,13 @@ function initializeFieldSelection(parsedData) {
 // Function to gather selected fields
 function getSelectedData() {
   const selectedData = {};
-  fields.forEach(field => {
+  fields.forEach((field) => {
     const checkbox = document.getElementById(field);
     if (checkbox && checkbox.checked && parsedformData.hasOwnProperty(field)) {
       selectedData[field] = parsedformData[field];
     }
   });
-  
+
   // ----------------------------------------------------------
   // If the user is under 18, remove emailaddress, firstname, and lastname
   // ----------------------------------------------------------
@@ -223,7 +227,9 @@ async function sendDataToServer(selectedData) {
 
     // Display success message with complaint number (if available)
     if (responseData.id) {
-      alert(`Data sent successfully! Your TACC Record ID is:\n\n${responseData.id}`);
+      alert(
+        `Data sent successfully! Your TACC Record ID is:\n\n${responseData.id}`
+      );
       handleSuccess(responseData.id);
 
       // ----------------------------------------------------------
@@ -231,12 +237,17 @@ async function sendDataToServer(selectedData) {
       // ----------------------------------------------------------
       try {
         // 1) Retrieve existing array from storage
-        let { bbcComplaints } = await browser.storage.local.get('bbcComplaints');
+        let { bbcComplaints } = await browser.storage.local.get(
+          "bbcComplaints"
+        );
         if (!bbcComplaints) {
           bbcComplaints = [];
         }
-        console.log("Existing complaints stored in local storage:", bbcComplaints);
-        
+        console.log(
+          "Existing complaints stored in local storage:",
+          bbcComplaints
+        );
+
         // 2) Build new complaint object
         const newComplaint = {
           subject: selectedData.title,
@@ -250,19 +261,20 @@ async function sendDataToServer(selectedData) {
 
         // 4) Save updated array back to storage
         await browser.storage.local.set({ bbcComplaints });
-        console.log("Complaint ID stored successfully in local storage (array).");
-
+        console.log(
+          "Complaint ID stored successfully in local storage (array)."
+        );
       } catch (err) {
         console.error("Error storing complaint ID:", err);
       }
-
     } else {
       alert("Data sent successfully, but no TACC Record ID was returned.");
     }
-
   } catch (error) {
     console.error("Error sending data to server:", error);
-    alert("An error occurred while sending data. Please check the console for details.");
+    alert(
+      "An error occurred while sending data. Please check the console for details."
+    );
   }
 }
 
