@@ -225,7 +225,7 @@ app.post("/api/replies", (req, res) => {
     db.query(insertReplyQuery, [id, bbc_ref_number, intercept_id, sanitizedReply], (insertErr) => {
       if (insertErr) {
         console.error("Error storing reply:", insertErr.message);
-        return res.status(500).json({ error: "Failed to store reply." });
+        return res.status(500).json({ error: "Failed to store reply. ", insertErr: insertErr.message });
       }
 
       res.status(200).json({ message: "Reply stored successfully.", id });
