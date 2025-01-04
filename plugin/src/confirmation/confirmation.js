@@ -319,7 +319,20 @@ document.getElementById("sendBtn").addEventListener("click", () => {
   }
 });
 
-document.getElementById("cancelBtn").addEventListener("click", () => {
-  console.log("Data sending canceled by user.");
-  window.close(); // Close the tab
+document.getElementById("cancelBtn").addEventListener("click", async () => {
+  try {
+    // Query the active tab in the current window
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    
+    if (tabs.length > 0 && tabs[0].id) {
+      // Close the active tab
+      await browser.tabs.remove(tabs[0].id);
+    } else {
+      console.error("No active tab found to close.");
+      alert("Unable to close the tab programmatically. Please close it manually.");
+    }
+  } catch (error) {
+    console.error("Error closing the tab:", error);
+    alert("Unable to close the tab programmatically. Please close it manually.");
+  }
 });
