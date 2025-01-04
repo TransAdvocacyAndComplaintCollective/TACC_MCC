@@ -108,7 +108,7 @@
   <div class="form-container embed-responsive">
     <form id="replyForm">
       <label for="bbcRef">BBC Reference Number:</label>
-      <input type="text" id="bbcRef" name="bbcRef" required pattern="\d{5,}" title="BBC Reference Number should be at least 5 digits long.">
+      <input type="text" id="bbcRef" name="bbcRef" required pattern="^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$" title="BBC Reference Number should follow the format AAA-1234567-ABC123.">
 
       <label for="interceptId">TACC Record ID:</label>
       <input type="text" id="interceptId" name="TACC Record ID" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID.">
@@ -141,7 +141,7 @@
 
       const formData = {
         bbc_ref_number: document.getElementById('bbcRef').value,
-        intercept_id: document.getElementById('interceptId').value || generateUUID(), // Use generated UUID if not entered
+        intercept_id: document.getElementById('interceptId').value, // Use generated UUID if not entered
         bbc_reply: document.getElementById('bbcReply').value,
       };
 
