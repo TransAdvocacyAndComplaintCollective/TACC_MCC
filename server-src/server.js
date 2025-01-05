@@ -274,7 +274,7 @@ app.post("/api/replies", (req, res) => {
   const { bbc_ref_number, intercept_id, bbc_reply } = req.body;
 
   // Basic validation for required fields
-  if (!bbc_ref_number || !intercept_id || !bbc_reply) {
+  if (!intercept_id || !bbc_reply) {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
