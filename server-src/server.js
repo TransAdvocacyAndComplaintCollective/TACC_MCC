@@ -97,8 +97,6 @@ const createTables = () => {
       transmissiontime VARCHAR(50),
       under18 VARCHAR(10),
       verifyform VARCHAR(255),
-      complaint_nature TEXT,
-      complaint_nature_sounds TEXT,
       timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB;`,
 
@@ -134,22 +132,22 @@ createTables();
 
 
 // GET /api/companies/:uuid
-app.get("/api/companies/:uuid", validateUUID, (req, res) => {
+app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
   const { uuid } = req.params;
 
-  const query = "SELECT company FROM intercepted_data WHERE id = ? LIMIT 1;";
+  const query = "SELECT intercepted_data FROM intercepted_data WHERE id = ? LIMIT 1;";
   db.query(query, [uuid], (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);
-      return res.status(500).json({ error: "Failed to fetch company data." });
+      return res.status(500).json({ error: "Failed to fetch complaint data." });
     }
 
     if (results.length === 0) {
       return res.status(404).json({ error: "No data found for the provided UUID." });
     }
 
-    const company = results[0].company;
-    res.status(200).json({ company });
+    const complaint = results[0].complaint;
+    res.status(200).json({ complaint });
   });
 });
 

@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- Optional: Remove Bootstrap if not needed -->
+  <!-- Optional: Keep Bootstrap for styling -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- If you choose to keep Bootstrap, ensure that custom modal classes do not conflict -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
   <title>Media Complaint Response Form</title>
   <style>
@@ -24,7 +23,7 @@
     .form-container {
       border-radius: 0.375rem;
       margin: 40px auto;
-      max-width: 600px; /* Ensures the form doesn't stretch too wide */
+      max-width: 800px; /* Increased width for better layout */
       padding: 20px;
       background-color: #fff;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -54,7 +53,7 @@
     }
 
     textarea {
-      height: 250px;
+      height: 150px;
       background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
       transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
       padding: 20px;
@@ -166,22 +165,72 @@
     .custom-modal-buttons .no-button:hover {
       background-color: #b3b3b3;
     }
+
+    /* Complaint Details Section */
+    .complaint-details {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+
+    .complaint-details h3 {
+      margin-bottom: 10px;
+    }
+
+    .replies-section {
+      margin-top: 20px;
+    }
+
+    .reply-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .reply-item:last-child {
+      border-bottom: none;
+    }
+
+    .reply-item h5 {
+      margin-bottom: 5px;
+    }
+
+    .reply-item p {
+      margin: 0;
+    }
   </style>
 </head>
 <body>
   <h1>Media Complaint Response Form</h1>
   <div class="form-container">
     <form id="replyForm" novalidate>
+      <label for="interceptId">TACC Record ID:</label>
+      <input type="text" id="interceptId" name="interceptId" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID (UUID v4).">
+
+      <div id="complaintDetails" class="complaint-details" style="display: none;">
+        <h3>Complaint Details</h3>
+        <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
+        <p><strong>Description:</strong></p>
+        <p id="complaintDescription"></p>
+      </div>
+
+      <div id="repliesSection" class="replies-section" style="display: none;">
+        <h3>Existing Replies</h3>
+        <div id="repliesList">
+          <!-- Existing replies will be appended here -->
+        </div>
+      </div>
+
+      <hr>
+
       <label for="bbcRef">BBC Reference Number:</label>
       <input type="text" id="bbcRef" name="bbcRef" required pattern="^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$" title="BBC Reference Number should follow the format AAA-1234567-ABC123.">
-
-      <label for="interceptId">TACC Record ID:</label>
-      <input type="text" id="interceptId" name="interceptId" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID.">
 
       <label for="bbcReply">Complaint Response:</label>
       <textarea id="bbcReply" name="bbcReply" required placeholder="Type your reply here..."></textarea>
 
-      <button type="submit">Submit</button>
+      <button type="submit">Submit Reply</button>
     </form>
 
     <div id="messageContainer"></div>
@@ -200,11 +249,18 @@
   </div>
 
   <script>
-
     // Function to validate form fields manually
     function validateForm(form) {
       let isValid = true;
       const errors = [];
+
+      // TACC Record ID validation
+      const interceptId = form.interceptId.value.trim();
+      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!interceptIdPattern.test(interceptId)) {
+        isValid = false;
+        errors.push("Please enter a valid TACC Record ID (UUID v4).");
+      }
 
       // BBC Reference Number validation
       const bbcRef = form.bbcRef.value.trim();
@@ -212,14 +268,6 @@
       if (!bbcRefPattern.test(bbcRef)) {
         isValid = false;
         errors.push("BBC Reference Number should follow the format AAA-1234567-ABC123.");
-      }
-
-      // TACC Record ID validation
-      const interceptId = form.interceptId.value.trim();
-      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-      if (!interceptIdPattern.test(interceptId)) {
-        isValid = false;
-        errors.push("Please enter a valid TACC Record ID.");
       }
 
       // Complaint Response validation
@@ -231,6 +279,100 @@
 
       return { isValid, errors };
     }
+
+    // Function to fetch and display complaint details
+    async function fetchComplaintDetails(uuid) {
+      const complaintDetails = document.getElementById('complaintDetails');
+      const complaintTitle = document.getElementById('complaintTitle');
+      const complaintDescription = document.getElementById('complaintDescription');
+
+      const repliesSection = document.getElementById('repliesSection');
+      const repliesList = document.getElementById('repliesList');
+
+      try {
+        // Fetch complaint details
+        const complaintResponse = await fetch(`/api/complaint/${uuid}`);
+        if (!complaintResponse.ok) {
+          throw new Error('Complaint not found.');
+        }
+        const complaintData = await complaintResponse.json();
+        complaintTitle.textContent = complaintData.complaint.title || 'No Title';
+        complaintDescription.textContent = complaintData.complaint.description || 'No Description';
+        complaintDetails.style.display = 'block';
+
+        // Fetch existing replies
+        const repliesResponse = await fetch(`/api/replies/${uuid}`);
+        if (!repliesResponse.ok) {
+          throw new Error('Failed to fetch replies.');
+        }
+        const repliesData = await repliesResponse.json();
+
+        // Clear existing replies
+        repliesList.innerHTML = '';
+
+        if (repliesData.length === 0) {
+          repliesList.innerHTML = '<p>No replies yet.</p>';
+        } else {
+          repliesData.forEach(reply => {
+            const replyItem = document.createElement('div');
+            replyItem.className = 'reply-item';
+            replyItem.innerHTML = `
+              <h5>Reply ID: ${reply.id}</h5>
+              <p><strong>BBC Reference Number:</strong> ${reply.bbc_ref_number}</p>
+              <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
+              <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
+            `;
+            repliesList.appendChild(replyItem);
+          });
+        }
+
+        repliesSection.style.display = 'block';
+      } catch (error) {
+        // Hide complaint details and replies if fetch fails
+        complaintDetails.style.display = 'none';
+        repliesSection.style.display = 'none';
+        displayError(error.message);
+        console.error('Error fetching complaint details:', error);
+      }
+    }
+
+    // Function to display error messages
+    function displayError(message) {
+      const messageContainer = document.getElementById('messageContainer');
+      const errorMessage = document.createElement('div');
+      errorMessage.className = 'error-message';
+      errorMessage.textContent = `Error: ${message}`;
+      messageContainer.appendChild(errorMessage);
+    }
+
+    // Event listener for TACC Record ID field
+    document.getElementById('interceptId').addEventListener('blur', function() {
+      const uuid = this.value.trim();
+      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      
+      // Clear previous messages and details
+      document.getElementById('messageContainer').innerHTML = '';
+      document.getElementById('complaintDetails').style.display = 'none';
+      document.getElementById('repliesSection').style.display = 'none';
+
+      if (uuid && interceptIdPattern.test(uuid)) {
+        // Show loading message
+        const messageContainer = document.getElementById('messageContainer');
+        const loadingMessage = document.createElement('div');
+        loadingMessage.className = 'loading-message';
+        loadingMessage.textContent = 'Fetching complaint details...';
+        messageContainer.appendChild(loadingMessage);
+
+        // Fetch and display complaint details
+        fetchComplaintDetails(uuid).then(() => {
+          // Remove loading message
+          loadingMessage.remove();
+        }).catch(() => {
+          // Remove loading message on error
+          loadingMessage.remove();
+        });
+      }
+    });
 
     document.getElementById('replyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -255,7 +397,7 @@
 
       const formData = {
         bbc_ref_number: form.bbcRef.value.trim(),
-        intercept_id: form.interceptId.value.trim(), // Use entered ID
+        intercept_id: form.interceptId.value.trim(), // Use entered UUID
         bbc_reply: form.bbcReply.value.trim(),
       };
 
@@ -290,6 +432,8 @@
             form.reset();
             customModal.style.display = 'none';
             messageContainer.innerHTML = '';
+            document.getElementById('complaintDetails').style.display = 'none';
+            document.getElementById('repliesSection').style.display = 'none';
           };
 
           // Handle No button
@@ -299,6 +443,9 @@
             formContainer.innerHTML = '<p>Thank you for your submission.</p>';
             customModal.style.display = 'none';
           };
+
+          // Refresh the replies list to include the new reply
+          fetchComplaintDetails(formData.intercept_id);
         } else {
           // Display server-side validation errors
           const errorMessage = document.createElement('div');
@@ -339,7 +486,6 @@
         event.preventDefault();
       }
     });
-
   </script>
 </body>
 </html>
