@@ -143,9 +143,14 @@
         const messageContainer = document.getElementById("messageContainer");
         messageContainer.innerHTML = `<div class="error-message">Error: ${message}</div>`;
       }
-      function displayLoading(message) {
+      function displayLoading(isLoading) {
         const messageContainer = document.getElementById("messageContainer");
-        messageContainer.innerHTML = `<div class="loading-message">${message}</div>`;
+        if (isLoading) {
+          messageContainer.innerHTML = `<div class="loading-message">Loading...</div>`;
+        } else {
+          messageContainer.innerHTML = "";
+        }
+
       }
       async function fetchComplaintDetails(uuid) {
         try {
