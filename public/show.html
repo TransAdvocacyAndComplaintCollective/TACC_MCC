@@ -114,11 +114,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const submitButton = document.getElementById('submitButton');
-      if (submitButton) {
-        submitButton.addEventListener('click', loadComplaintDetails);
-      } else {
-        console.error('Submit button not found.');
-      }
+      submitButton.addEventListener('click', loadComplaintDetails);
 
       // Automatically load complaint details if UUID is present in the query string.
       const params = new URLSearchParams(window.location.search);
@@ -130,9 +126,12 @@
           uuidInput.value = uuid;
           fetchComplaintDetails(uuid);
         } else {
-          console.error('UUID input field not found.');
+          console.error('UUID input element not found.');
         }
       }
+
+      // Debugging: Log the elements
+      console.log('DOM fully loaded.');
     });
 
     /**
@@ -140,18 +139,19 @@
      * @param {HTMLElement} container - The container where the spinner will be inserted.
      */
     function showSpinner(container) {
-      if (container) {
-        container.innerHTML = `
-          <div class="spinner-container">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        `;
-        container.style.display = 'block';
-      } else {
-        console.error('showSpinner: container is null');
+      if (!container) {
+        console.error('Spinner container is null.');
+        return;
       }
+
+      container.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      `;
+      container.style.display = 'block';
     }
 
     /**
@@ -159,12 +159,13 @@
      * @param {HTMLElement} container - The container to clear the spinner from.
      */
     function hideSpinner(container) {
-      if (container) {
-        container.innerHTML = '';
-        container.style.display = 'none';
-      } else {
-        console.error('hideSpinner: container is null');
+      if (!container) {
+        console.error('Spinner container is null.');
+        return;
       }
+
+      container.innerHTML = '';
+      container.style.display = 'none';
     }
 
     /**
@@ -174,13 +175,13 @@
      */
     function displayNotification(message, type = 'info') {
       const notification = document.getElementById('notification');
-      if (notification) {
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        notification.style.display = 'block';
-      } else {
-        console.error('displayNotification: notification element not found');
+      if (!notification) {
+        console.error('Notification element not found.');
+        return;
       }
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      notification.style.display = 'block';
     }
 
     /**
@@ -188,13 +189,13 @@
      */
     function clearNotification() {
       const notification = document.getElementById('notification');
-      if (notification) {
-        notification.textContent = '';
-        notification.className = 'notification';
-        notification.style.display = 'none';
-      } else {
-        console.error('clearNotification: notification element not found');
+      if (!notification) {
+        console.error('Notification element not found.');
+        return;
       }
+      notification.textContent = '';
+      notification.className = 'notification';
+      notification.style.display = 'none';
     }
 
     /**
@@ -209,6 +210,13 @@
       const repliesSection = document.getElementById('repliesSection');
       const repliesList = document.getElementById('repliesList');
 
+      // Debugging: Check if elements are found
+      if (!complaintDetails) console.error('Element with id "complaintDetails" not found.');
+      if (!complaintTitle) console.error('Element with id "complaintTitle" not found.');
+      if (!complaintDescription) console.error('Element with id "complaintDescription" not found.');
+      if (!repliesSection) console.error('Element with id "repliesSection" not found.');
+      if (!repliesList) console.error('Element with id "repliesList" not found.');
+
       console.log('Fetching details for UUID:', uuid);
 
       // Show loading spinners
@@ -216,12 +224,8 @@
       showSpinner(repliesList);
 
       // Hide previous details and notifications
-      if (complaintDetails) {
-        complaintDetails.style.display = 'none';
-      }
-      if (repliesSection) {
-        repliesSection.style.display = 'none';
-      }
+      if (complaintDetails) complaintDetails.style.display = 'none';
+      if (repliesSection) repliesSection.style.display = 'none';
       clearNotification();
 
       try {
@@ -232,24 +236,30 @@
         }
         const complaintData = await complaintResponse.json();
 
-        // Ensure complaintData has the expected structure
-        if (!complaintData.complaint) {
-          throw new Error('Invalid complaint data received.');
+        if (complaintTitle) {
+          complaintTitle.textContent = complaintData.complaint.title || 'No Title';
+        } else {
+          console.error('Element with id "complaintTitle" not found.');
         }
 
-        if (complaintTitle && complaintDescription && complaintDetails) {
-          complaintTitle.textContent = complaintData.complaint.title || 'No Title';
+        if (complaintDescription) {
           complaintDescription.textContent = complaintData.complaint.description || 'No Description';
-          complaintDetails.style.display = 'block';
         } else {
-          console.error('complaintTitle, complaintDescription, or complaintDetails is null');
-          displayNotification('Error displaying complaint details.', 'error');
+          console.error('Element with id "complaintDescription" not found.');
+        }
+
+        if (complaintDetails) {
+          complaintDetails.style.display = 'block';
         }
       } catch (error) {
-        // Display error in complaint details
-        if (complaintTitle && complaintDescription && complaintDetails) {
+        console.error('Error fetching complaint details:', error);
+        if (complaintTitle) {
           complaintTitle.textContent = 'Error fetching complaint details';
+        }
+        if (complaintDescription) {
           complaintDescription.textContent = error.message;
+        }
+        if (complaintDetails) {
           complaintDetails.style.display = 'block';
         }
         displayNotification(error.message, 'error');
@@ -269,33 +279,37 @@
         // Clear existing replies
         if (repliesList) {
           repliesList.innerHTML = '';
+        }
 
-          if (repliesData.length === 0) {
+        if (repliesData.length === 0) {
+          if (repliesList) {
             repliesList.innerHTML = '<p>No replies yet.</p>';
-          } else {
-            repliesData.forEach(reply => {
-              const replyItem = document.createElement('div');
-              replyItem.className = 'reply-item';
-              replyItem.innerHTML = `
-                <h5>Reply ID: ${reply.id}</h5>
-                <p><strong>BBC Reference Number:</strong> ${reply.bbc_ref_number}</p>
-                <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
-                <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
-              `;
-              repliesList.appendChild(replyItem);
-            });
-          }
-          if (repliesSection) {
-            repliesSection.style.display = 'block';
           }
         } else {
-          console.error('repliesList element not found');
-          displayNotification('Replies section is missing.', 'error');
+          repliesData.forEach(reply => {
+            const replyItem = document.createElement('div');
+            replyItem.className = 'reply-item';
+            replyItem.innerHTML = `
+              <h5>Reply ID: ${reply.id}</h5>
+              <p><strong>BBC Reference Number:</strong> ${reply.bbc_ref_number}</p>
+              <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
+              <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
+            `;
+            if (repliesList) {
+              repliesList.appendChild(replyItem);
+            }
+          });
+        }
+
+        if (repliesSection) {
+          repliesSection.style.display = 'block';
         }
       } catch (error) {
-        // Display error in replies section
-        if (repliesList && repliesSection) {
+        console.error('Error fetching replies:', error);
+        if (repliesList) {
           repliesList.innerHTML = '<p>Error loading replies.</p>';
+        }
+        if (repliesSection) {
           repliesSection.style.display = 'block';
         }
         displayNotification(error.message, 'error');
@@ -309,12 +323,19 @@
      * Initiates the process to load complaint details based on user input.
      */
     function loadComplaintDetails() {
-      const uuidInput = document.getElementById('uuidInput').value.trim();
-      if (uuidInput) {
+      const uuidInput = document.getElementById('uuidInput');
+      if (!uuidInput) {
+        console.error('UUID input element not found.');
+        displayNotification('UUID input field is missing.', 'error');
+        return;
+      }
+
+      const uuidValue = uuidInput.value.trim();
+      if (uuidValue) {
         // Basic UUID v4 validation
         const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-        if (uuidPattern.test(uuidInput)) {
-          fetchComplaintDetails(uuidInput);
+        if (uuidPattern.test(uuidValue)) {
+          fetchComplaintDetails(uuidValue);
         } else {
           displayNotification('Please enter a valid UUID (UUID v4 format).', 'error');
         }
