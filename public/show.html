@@ -19,6 +19,9 @@
         text-align: center;
         margin-top: 20px;
       }
+      .reply-button-section {
+        text-align: center;
+      }
       .container {
         border-radius: 0.375rem;
         margin: 40px auto;
@@ -58,6 +61,20 @@
       button:hover {
         background-color: #45a049;
       }
+      .submitReplyButton {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+        margin-top: 10px;
+      }
+      .submitReplyButton:hover {
+        background-color: #0056b3;
+      }
       .error-message,
       .success-message,
       .loading-message {
@@ -82,7 +99,8 @@
         background-color: #f9f9f9;
       }
       @media (max-width: 600px) {
-        button {
+        button,
+        .submitReplyButton {
           width: 100%;
           margin: 10px 0;
         }
@@ -104,6 +122,13 @@
           title="Please enter a valid TACC Record ID (UUID v4)."
         />
         <button type="submit">View Complaint</button>
+        <button
+          type="button"
+          class="submitReplyButton"
+          onclick="submitReply()"
+        >
+          Submit a Reply
+        </button>
       </form>
       <div
         id="complaintDetails"
@@ -119,11 +144,8 @@
         <h3>Existing Replies</h3>
         <div id="repliesList"></div>
       </div>
-      <div
-        class="reply-button-section"
-        style="display: none"
-      >
-        <button id="submitReplyButton" onclick="submitReply()">
+      <div class="reply-button-section" style="display: none">
+        <button class="submitReplyButton" onclick="submitReply()">
           Submit a Reply
         </button>
       </div>
@@ -149,7 +171,6 @@
         } else {
           messageContainer.innerHTML = "";
         }
-
       }
       async function fetchComplaintDetails(uuid) {
         try {
