@@ -123,11 +123,7 @@
           onblur="handleBlur()"
         />
         <button type="submit">View Complaint</button>
-        <button
-          type="button"
-          class="submitReplyButton"
-          onclick="submitReply()"
-        >
+        <button type="button" class="submitReplyButton" onclick="submitReply()">
           Submit a Reply
         </button>
       </form>
@@ -152,19 +148,23 @@
       </div>
     </div>
     <script>
+      // Updated JavaScript for improved functionality
       function getQueryParam(param) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(param);
       }
+
       function isValidUUID(uuid) {
         const uuidPattern =
           /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
         return uuidPattern.test(uuid);
       }
+
       function displayError(message) {
         const messageContainer = document.getElementById("messageContainer");
         messageContainer.innerHTML = `<div class="error-message">Error: ${message}</div>`;
       }
+
       function displayLoading(isLoading) {
         const messageContainer = document.getElementById("messageContainer");
         if (isLoading) {
@@ -173,6 +173,7 @@
           messageContainer.innerHTML = "";
         }
       }
+
       async function fetchComplaintDetails(uuid) {
         try {
           const complaintResponse = await fetch(`/api/complaint/${uuid}`);
@@ -186,6 +187,7 @@
         } catch (error) {
           displayError(error.message);
         }
+
         try {
           const repliesResponse = await fetch(`/api/replies/${uuid}`);
           const repliesData = await repliesResponse.json();
@@ -196,7 +198,7 @@
               : repliesData
                   .map(
                     (reply) =>
-                      `<div><h5>${reply.id}</h5><p>${reply.bbc_reply}</p></div>`
+                      `<div><h5>Reply ID: ${reply.id}</h5><p>${reply.bbc_reply}</p></div>`
                   )
                   .join("");
           document.getElementById("repliesSection").style.display = "block";
@@ -204,6 +206,7 @@
           displayError("Error fetching replies.");
         }
       }
+
       function handleBlur() {
         const uuid = document.getElementById("uuidInput").value.trim();
         if (isValidUUID(uuid)) {
@@ -215,14 +218,37 @@
           displayError("Invalid UUID.");
         }
       }
+
       function submitReply() {
         const uuid = document.getElementById("uuidInput").value.trim();
         if (isValidUUID(uuid)) {
-          window.location.href = `https://tacc.org.uk/api/replay/index.html?uuid=${uuid}`;
+          window.location.href = `/api/replay/index.html?uuid=${uuid}`;
         } else {
           displayError("Invalid UUID.");
         }
       }
+
+      // New functionality: Automatically populate and fetch complaint details if UUID is present in URL
+      window.onload = () => {
+        const uuid = getQueryParam("uuid");
+        const uuidInput = document.getElementById("uuidInput");
+
+        if (uuid && isValidUUID(uuid)) {
+          uuidInput.value = uuid;
+          displayLoading(true);
+          fetchComplaintDetails(uuid).finally(() => {
+            displayLoading(false);
+          });
+        }
+
+        // Attach event listener to "View Complaint" button
+        document
+          .getElementById("uuidForm")
+          .addEventListener("submit", (event) => {
+            event.preventDefault();
+            handleBlur();
+          });
+      };
     </script>
   </body>
 </html>
