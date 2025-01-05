@@ -272,6 +272,14 @@
         </label>
       </div>
 
+      <!-- GDPR Consent Section -->
+      <div class="consent-section">
+        <label for="gdprConsentCheckbox">
+          <input type="checkbox" id="gdprConsentCheckbox" name="gdprConsent" />
+          I acknowledge that I have read and understand the <a href="/gdpr-policy.html" target="_blank">GDPR Privacy Policy</a>.
+        </label>
+      </div>
+
       <button type="submit" id="submitReplyBtn" disabled>Submit Reply</button>
     </form>
 
@@ -324,6 +332,13 @@
       if (!consentChecked) {
         isValid = false;
         errors.push("You must agree to the Privacy Policy to submit your reply.");
+      }
+
+      // GDPR Consent validation
+      const gdprConsentChecked = form.gdprConsent.checked;
+      if (!gdprConsentChecked) {
+        isValid = false;
+        errors.push("You must acknowledge the GDPR Privacy Policy to submit your reply.");
       }
 
       return { isValid, errors };
@@ -504,18 +519,20 @@
             // Reset specific fields instead of the entire form
             replyForm.bbcRef.value = '';
             replyForm.bbcReply.value = '';
+            replyForm.interceptId.value = '';
             
-            // Uncheck the consent checkbox
+            // Uncheck the consent checkboxes
             replyForm.consent.checked = false;
+            replyForm.gdprConsent.checked = false;
             
-            // Disable the submit button again until consent is given
+            // Disable the submit button again until consents are given
             submitReplyBtn.disabled = true;
             
-            // Hide the consent section
-            const consentSection = document.querySelector('.consent-section');
-            if (consentSection) {
-              consentSection.style.display = 'none';
-            }
+            // Hide the consent sections if desired
+            const consentSections = document.querySelectorAll('.consent-section');
+            consentSections.forEach(section => {
+              section.style.display = 'block';
+            });
 
             // Hide the modal
             customModal.style.display = 'none';
@@ -524,6 +541,9 @@
             messageContainer.innerHTML = '';
             document.getElementById('complaintDetails').style.display = 'none';
             document.getElementById('repliesSection').style.display = 'none';
+            
+            // Focus back on the TACC Record ID field
+            document.getElementById('interceptId').focus();
           };
 
           // Handle No button
@@ -577,13 +597,21 @@
       }
     });
 
-    // Handle Consent Checkbox
+    // Handle Consent Checkboxes
     const consentCheckbox = document.getElementById('consentCheckbox');
+    const gdprConsentCheckbox = document.getElementById('gdprConsentCheckbox');
     const submitReplyBtn = document.getElementById('submitReplyBtn');
 
-    consentCheckbox.addEventListener('change', function() {
-      submitReplyBtn.disabled = !this.checked;
-    });
+    function updateSubmitButtonState() {
+      if (consentCheckbox.checked && gdprConsentCheckbox.checked) {
+        submitReplyBtn.disabled = false;
+      } else {
+        submitReplyBtn.disabled = true;
+      }
+    }
+
+    consentCheckbox.addEventListener('change', updateSubmitButtonState);
+    gdprConsentCheckbox.addEventListener('change', updateSubmitButtonState);
   </script>
 </body>
 </html>
