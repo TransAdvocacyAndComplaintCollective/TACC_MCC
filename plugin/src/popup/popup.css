@@ -5,6 +5,15 @@ body {
   /*min-width: 500px;*/
 }
 
+a {
+  color: #000;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #666666;
+}
+
 table {
   width: 100%;
   font-family: monospace, monospace;
