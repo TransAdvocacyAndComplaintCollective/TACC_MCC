@@ -99,12 +99,21 @@ function handleSuccess(complaintId) {
 
   const cancelBtn = document.getElementById("cancelBtn");
   cancelBtn.textContent = "Close Page";
-  cancelBtn.style.color = "green";
+  cancelBtn.style.backgroundColor = "#4caf50";
 
   const dataContentEl = document.getElementById("dataContent");
-  dataContentEl.innerHTML = complaintId
-    ? `<strong>Success!</strong> Your data has been sent successfully.<br>Your complaint number is: <strong>${complaintId}</strong>.`
-    : `<strong>Success!</strong> Your data has been sent successfully.`;
+  if (complaintId) {
+    dataContentEl.innerHTML = `
+      <span id="success"><strong>Success!</strong> Your data has been sent successfully.</span><br>
+      Your complaint number is: <strong>${complaintId}</strong>.<br><br>
+    `;
+  } else {
+    dataContentEl.innerHTML = `
+      <strong>Success!</strong> Your data has been sent successfully.<br><br>
+    `;
+  }
+
+  // Optionally, store a flag in localStorage to prevent future submissions
 }
 
 // Utility function to update content display
