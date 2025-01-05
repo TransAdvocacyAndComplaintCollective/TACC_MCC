@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Optional: Keep Bootstrap for styling -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -11,35 +10,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <title>Media Complaint Response Form</title>
     <style>
-      /* [Your existing styles remain unchanged] */
-
       body {
         font-family: Arial, sans-serif;
         margin: 0;
         color: #3a4f66;
         background-color: #fafbfc;
       }
-
       h1 {
         text-align: center;
         margin-top: 20px;
       }
-
       .form-container {
         border-radius: 0.375rem;
         margin: 40px auto;
-        max-width: 800px; /* Increased width for better layout */
+        max-width: 800px;
         padding: 20px;
         background-color: #fff;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
-
       label {
         font-weight: bold;
         display: block;
         margin: 10px 0 5px;
       }
-
       input[type="text"],
       textarea {
         width: 100%;
@@ -50,33 +43,14 @@
         font-size: 16px;
         transition: all 0.3s ease-in-out;
       }
-
       input[type="text"]:focus,
       textarea:focus {
         border-color: #4caf50;
         box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
       }
-
       textarea {
         height: 150px;
-        background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
-        transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-        padding: 20px;
-        border: 1px solid #ccc;
       }
-
-      textarea::placeholder {
-        color: #bbb;
-        font-style: italic;
-        transition: color 0.3s ease-in-out;
-      }
-
-      textarea:focus {
-        background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
-        box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
-        padding: 18px;
-      }
-
       button {
         background-color: #4caf50;
         color: white;
@@ -88,153 +62,20 @@
         cursor: pointer;
         transition: background-color 0.3s ease-in-out;
       }
-
       button:hover {
         background-color: #45a049;
       }
-
       .error-message {
         color: red;
         margin-top: 10px;
       }
-
       .success-message {
         color: green;
         margin-top: 10px;
       }
-
       .loading-message {
         color: orange;
         margin-top: 10px;
-      }
-
-      /* Custom Modal Styles */
-      .custom-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: none; /* Hidden by default */
-        align-items: center;
-        justify-content: center;
-        z-index: 1000; /* Ensure it's above other elements */
-      }
-
-      .custom-modal-content {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        max-width: 400px;
-        width: 90%;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
-
-      .custom-modal-content p {
-        margin-bottom: 20px;
-        font-size: 18px;
-      }
-
-      .custom-modal-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-      }
-
-      .custom-modal-buttons button {
-        flex: 1;
-        padding: 10px;
-        font-size: 16px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease-in-out;
-      }
-
-      .custom-modal-buttons .yes-button {
-        background-color: #4caf50;
-        color: white;
-      }
-
-      .custom-modal-buttons .yes-button:hover {
-        background-color: #45a049;
-      }
-
-      .custom-modal-buttons .no-button {
-        background-color: #ccc;
-        color: #333;
-      }
-
-      .custom-modal-buttons .no-button:hover {
-        background-color: #b3b3b3;
-      }
-
-      /* Complaint Details Section */
-      .complaint-details {
-        margin-top: 20px;
-        padding: 15px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background-color: #f9f9f9;
-      }
-
-      .complaint-details h3 {
-        margin-bottom: 10px;
-      }
-
-      .replies-section {
-        margin-top: 20px;
-      }
-
-      .reply-item {
-        padding: 10px;
-        border-bottom: 1px solid #eee;
-      }
-
-      .reply-item:last-child {
-        border-bottom: none;
-      }
-
-      .reply-item h5 {
-        margin-bottom: 5px;
-      }
-
-      .reply-item p {
-        margin: 0;
-      }
-
-      /* Consent Section */
-      .consent-section {
-        margin-top: 20px;
-      }
-
-      .consent-section label {
-        font-weight: normal;
-        display: flex;
-        align-items: center;
-      }
-
-      .consent-section input[type="checkbox"] {
-        margin-right: 10px;
-      }
-
-      /* Responsive Design */
-      @media (max-width: 600px) {
-        button {
-          width: 100%;
-          margin: 10px 0;
-        }
-      }
-
-      .notification {
-        background-color: #fff3cd;
-        border: 1px solid #ffeeba;
-        padding: 15px;
-        border-radius: 4px;
-        color: #856404;
-        margin-top: 20px;
       }
     </style>
   </head>
@@ -252,27 +93,7 @@
           title="Please enter a valid TACC Record ID (UUID v4)."
         />
 
-        <div
-          id="complaintDetails"
-          class="complaint-details"
-          style="display: none"
-        >
-          <h3>Complaint Details</h3>
-          <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
-          <p><strong>Description:</strong></p>
-          <p id="complaintDescription"></p>
-        </div>
-
-        <div id="repliesSection" class="replies-section" style="display: none">
-          <h3>Existing Replies</h3>
-          <div id="repliesList">
-            <!-- Existing replies will be appended here -->
-          </div>
-        </div>
-
-        <hr />
-
-        <label for="bbcRef">BBC Reference Number:</label>
+        <label for="bbcRef">BBC Reference Number (Highly Recommended):</label>
         <input
           type="text"
           id="bbcRef"
@@ -289,7 +110,6 @@
           placeholder="Type your reply here..."
         ></textarea>
 
-        <!-- GDPR Consent Section -->
         <div class="consent-section">
           <label for="gdprConsentCheckbox">
             <input
@@ -308,244 +128,29 @@
       <div id="messageContainer"></div>
     </div>
 
-    <!-- Custom Modal -->
-    <div class="custom-modal-overlay" id="customModal">
-      <div class="custom-modal-content">
-        <p>Reply submitted successfully!</p>
-        <p>Do you want to send another reply?</p>
-        <div class="custom-modal-buttons">
-          <button id="modalYes" class="yes-button">Yes</button>
-          <button id="modalNo" class="no-button">No</button>
-        </div>
-      </div>
-    </div>
-
     <script>
-      // Function to get query parameters
-      function getQueryParam(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-      }
-
-      // Function to validate form fields manually
-      function validateForm(form) {
-        let isValid = true;
-        const errors = [];
-
-        // TACC Record ID validation
-        const interceptId = form.interceptId.value.trim();
-        const interceptIdPattern =
-          /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-        if (!interceptIdPattern.test(interceptId)) {
-          isValid = false;
-          errors.push("Please enter a valid TACC Record ID (UUID v4).");
-        }
-
-        // BBC Reference Number validation
-        const bbcRef = form.bbcRef.value.trim();
-        const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
-        if (!bbcRefPattern.test(bbcRef) && bbcRef.length > 0) {
-          isValid = false;
-          errors.push(
-            "BBC Reference Number should follow the format AAA-1234567-ABC123."
-          );
-        }
-
-        // Complaint Response validation
-        const bbcReply = form.bbcReply.value.trim();
-        if (bbcReply.length === 0) {
-          isValid = false;
-          errors.push("Complaint Response cannot be empty.");
-        }
-
-        // GDPR Consent validation
-        const gdprConsentChecked = form.gdprConsent.checked;
-        if (!gdprConsentChecked) {
-          isValid = false;
-          errors.push(
-            "You must acknowledge the GDPR Privacy Policy to submit your reply."
-          );
-        }
-
-        return { isValid, errors };
-      }
-
-      // Function to fetch and display complaint details
-      async function fetchComplaintDetails(uuid) {
-        const complaintDetails = document.getElementById("complaintDetails");
-        const complaintTitle = document.getElementById("complaintTitle");
-        const complaintDescription = document.getElementById(
-          "complaintDescription"
-        );
-
-        const repliesSection = document.getElementById("repliesSection");
-        const repliesList = document.getElementById("repliesList");
-
-        try {
-          // Fetch complaint details
-          const complaintResponse = await fetch(`/api/complaint/${uuid}`);
-          if (!complaintResponse.ok) {
-            throw new Error("Complaint not found.");
-          }
-          const complaintData = await complaintResponse.json();
-          complaintTitle.textContent =
-            complaintData.complaint.title || "No Title";
-          complaintDescription.textContent =
-            complaintData.complaint.description || "No Description";
-          complaintDetails.style.display = "block";
-        } catch (error) {
-          // Hide complaint details if fetching fails
-          complaintDetails.style.display = "none";
-          displayError(error.message);
-          console.error("Error fetching complaint details:", error);
-          return; // Exit the function if complaint details cannot be fetched
-        }
-
-        try {
-          // Fetch existing replies
-          const repliesResponse = await fetch(`/api/replies/${uuid}`);
-          if (!repliesResponse.ok) {
-            return; // No need to throw an error if replies are not found
-          }
-          const repliesData = await repliesResponse.json();
-
-          // Clear existing replies
-          repliesList.innerHTML = "";
-
-          if (repliesData.length === 0) {
-            repliesList.innerHTML = "<p>No replies yet.</p>";
-          } else {
-            repliesData.forEach((reply) => {
-              const replyItem = document.createElement("div");
-              replyItem.className = "reply-item";
-              replyItem.innerHTML = `
-              <h5>Reply ID: ${reply.id}</h5>
-              <p><strong>BBC Reference Number:</strong> ${
-                reply.bbc_ref_number
-              }</p>
-              <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
-              <p><strong>Timestamp:</strong> ${new Date(
-                reply.timestamp
-              ).toLocaleString()}</p>
-            `;
-              repliesList.appendChild(replyItem);
-            });
-          }
-
-          repliesSection.style.display = "block";
-        } catch (error) {
-          // Hide replies section if fetching fails
-          repliesSection.style.display = "none";
-          displayError(error.message);
-          console.error("Error fetching replies:", error);
-        }
-      }
-
-      // Function to display error messages
-      function displayError(message) {
-        const messageContainer = document.getElementById("messageContainer");
-        const errorMessage = document.createElement("div");
-        errorMessage.className = "error-message";
-        errorMessage.textContent = `Error: ${message}`;
-        messageContainer.appendChild(errorMessage);
-      }
-
-      // Function to display success messages
-      function displaySuccess(message) {
-        const messageContainer = document.getElementById("messageContainer");
-        const successMessage = document.createElement("div");
-        successMessage.className = "success-message";
-        successMessage.textContent = message;
-        messageContainer.appendChild(successMessage);
-      }
-
-      // Function to display loading messages
-      function displayLoading(message) {
-        const messageContainer = document.getElementById("messageContainer");
-        const loadingMessage = document.createElement("div");
-        loadingMessage.className = "loading-message";
-        loadingMessage.textContent = message;
-        messageContainer.appendChild(loadingMessage);
-        return loadingMessage; // Return element to allow removal
-      }
-
-      // Auto-focus on interceptId field when page loads
-      window.onload = function () {
-        document.getElementById("interceptId").focus();
-        const uuid = getQueryParam("uuid");
-        if (uuid) {
-          document.getElementById("interceptId").value = uuid;
-          document
-            .getElementById("interceptId")
-            .dispatchEvent(new Event("blur"));
-        }
-      };
-
-      // Event listener for TACC Record ID field
-      document
-        .getElementById("interceptId")
-        .addEventListener("blur", function () {
-          const uuid = this.value.trim();
-          const interceptIdPattern =
-            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
-
-          // Clear previous messages and details
-          document.getElementById("messageContainer").innerHTML = "";
-          document.getElementById("complaintDetails").style.display = "none";
-          document.getElementById("repliesSection").style.display = "none";
-
-          if (uuid && interceptIdPattern.test(uuid)) {
-            // Show loading message
-            const loadingMessage = displayLoading(
-              "Fetching complaint details..."
-            );
-
-            // Fetch and display complaint details
-            fetchComplaintDetails(uuid)
-              .then(() => {
-                // Remove loading message
-                loadingMessage.remove();
-              })
-              .catch(() => {
-                // Remove loading message on error
-                loadingMessage.remove();
-              });
-          }
-        });
-
       document
         .getElementById("replyForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-
-          // Clear any previous messages
-          const messageContainer = document.getElementById("messageContainer");
-          messageContainer.innerHTML = "";
-
           const form = e.target;
-          const validation = validateForm(form);
+          const bbcRef = form.bbcRef.value.trim();
 
-          if (!validation.isValid) {
-            // Display validation errors
-            validation.errors.forEach((error) => {
-              const errorMessage = document.createElement("div");
-              errorMessage.className = "error-message";
-              errorMessage.textContent = error;
-              messageContainer.appendChild(errorMessage);
-            });
-            return; // Stop submission
+          if (!bbcRef) {
+            const confirmProceed = confirm(
+              "You have not entered a BBC Reference Number. Are you sure you want to proceed without it?"
+            );
+            if (!confirmProceed) {
+              return; // Stop form submission
+            }
           }
 
+          // Submit form logic
           const formData = {
-            bbc_ref_number: form.bbcRef.value.trim(),
-            intercept_id: form.interceptId.value.trim(), // Use entered UUID
+            bbc_ref_number: bbcRef,
+            intercept_id: form.interceptId.value.trim(),
             bbc_reply: form.bbcReply.value.trim(),
           };
-
-          // Show loading message
-          const loadingMessage = displayLoading(
-            "Submitting your reply... Please wait."
-          );
 
           try {
             const response = await fetch("/api/replies", {
@@ -558,116 +163,23 @@
 
             const result = await response.json();
 
-            // Remove loading message
-            loadingMessage.remove();
-
             if (response.ok) {
-              // Show custom modal
-              const customModal = document.getElementById("customModal");
-              customModal.style.display = "flex";
-
-              // Handle Yes button
-              document.getElementById("modalYes").onclick = () => {
-                // Keep TACC Record ID, BBC Reference Number, and GDPR checkbox values
-                const interceptId = replyForm.interceptId.value.trim();
-                const bbcRef = replyForm.bbcRef.value.trim();
-                const gdprConsentChecked = gdprConsentCheckbox.checked;
-
-                // Clear unnecessary fields (e.g., BBC Reply field)
-                replyForm.bbcReply.value = "";
-
-                // Re-enable the submit button based on GDPR consent
-                submitReplyBtn.disabled = !gdprConsentChecked;
-
-                // Hide the modal
-                customModal.style.display = "none";
-
-                // Refresh the replies list to include the new reply
-                if (interceptId) {
-                  fetchComplaintDetails(interceptId)
-                    .then(() => {
-                      // Optionally log success for debugging
-                      console.log("Replies reloaded successfully.");
-                    })
-                    .catch((error) => {
-                      console.error("Error reloading replies:", error);
-                    });
-                }
-
-                // Focus back on the BBC Reply field for a new reply
-                replyForm.bbcReply.focus();
-              };
-
-              // Handle No button
-              document.getElementById("modalNo").onclick = () => {
-                // Optionally, you can redirect the user or hide the form
-                const formContainer = document.querySelector(".form-container");
-                formContainer.innerHTML =
-                  "<p>Thank you for your submission.</p>";
-                customModal.style.display = "none";
-              };
-
-              // Refresh the replies list to include the new reply
-              fetchComplaintDetails(formData.intercept_id);
+              alert("Reply submitted successfully.");
+              form.reset();
             } else {
-              // Display server-side validation errors
-              const errorMessage = document.createElement("div");
-              errorMessage.className = "error-message";
-              errorMessage.textContent = `Error: ${
-                result.error || "An error occurred while submitting your reply."
-              }`;
-              messageContainer.appendChild(errorMessage);
+              alert(result.error || "An error occurred while submitting.");
             }
           } catch (error) {
-            // Remove loading message and show error
-            loadingMessage.remove();
-
-            const errorMessage = document.createElement("div");
-            errorMessage.className = "error-message";
-            errorMessage.textContent =
-              "An unexpected error occurred. Please try again later.";
-            messageContainer.appendChild(errorMessage);
-            console.error("Error submitting reply:", error);
+            console.error("Error submitting form:", error);
+            alert("An unexpected error occurred. Please try again.");
           }
         });
 
-      // Modal Functionality
-      const customModal = document.getElementById("customModal");
-      const modalYes = document.getElementById("modalYes");
-      const modalNo = document.getElementById("modalNo");
-      const formContainer = document.querySelector(".form-container");
-      const replyForm = document.getElementById("replyForm");
-
-      // Prevent clicking outside the modal content from closing it
-      customModal.addEventListener("click", function (event) {
-        // If the click is on the overlay (outside the modal content), do nothing
-        if (event.target === this) {
-          event.stopPropagation();
-        }
-      });
-
-      // Prevent Escape key from closing the modal
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && customModal.style.display === "flex") {
-          event.preventDefault();
-        }
-      });
-
-      // Handle GDPR Consent Checkbox
-      const gdprConsentCheckbox = document.getElementById(
-        "gdprConsentCheckbox"
-      );
-      const submitReplyBtn = document.getElementById("submitReplyBtn");
-
-      function updateSubmitButtonState() {
-        if (gdprConsentCheckbox.checked) {
-          submitReplyBtn.disabled = false;
-        } else {
-          submitReplyBtn.disabled = true;
-        }
-      }
-
-      gdprConsentCheckbox.addEventListener("change", updateSubmitButtonState);
+      document
+        .getElementById("gdprConsentCheckbox")
+        .addEventListener("change", function () {
+          document.getElementById("submitReplyBtn").disabled = !this.checked;
+        });
     </script>
   </body>
 </html>
