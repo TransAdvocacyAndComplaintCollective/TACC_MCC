@@ -186,6 +186,7 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
   });
 });
 
+
 // GET /api/replies/:uuid
 app.get("/api/replies/:uuid", validateUUID, (req, res) => {
   const { uuid } = req.params;
@@ -193,10 +194,12 @@ app.get("/api/replies/:uuid", validateUUID, (req, res) => {
   // Corrected query: Order by timestamp instead of nonexistent reply_order
   const query = "SELECT * FROM replies WHERE intercept_id = ? ORDER BY timestamp ASC;";
 
+  console.log(`Executing Query: ${query} with UUID: ${uuid}`); // Debugging: Log the query and UUID
+
   db.query(query, [uuid], (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);
-      return res.status(500).json({ error: "Failed to fetch replies." });
+      return res.status(500).json({ error: "Failed to fetch replies." }); // Correct status code
     }
 
     res.status(200).json(results);
