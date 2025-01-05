@@ -278,12 +278,6 @@ app.post("/api/replies", (req, res) => {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
-  // Validate BBC Reference Number format
-  const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
-  if (!bbcRefPattern.test(bbc_ref_number)) {
-    return res.status(400).json({ error: "Invalid BBC Reference Number format." });
-  }
-
   // Validate intercept_id format (UUID v4)
   const uuidV4Pattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
   if (!uuidV4Pattern.test(intercept_id)) {
