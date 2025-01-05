@@ -2,10 +2,13 @@
 /* Basic styles for table */
 body {
   font-size: 14px;
+  /*min-width: 500px;*/
 }
 
 table {
   width: 100%;
+  font-family: monospace, monospace;
+  font-size: 12px;
 }
 
 table, th, td {
