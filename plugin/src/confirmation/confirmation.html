@@ -84,30 +84,40 @@
   </style>
 </head>
 <body>
-  <h1>Send Data to TACC?</h1>
-  <p>Do you want to send a copy of the intercepted data to TACC? You can choose which pieces of information you'd like to share.</p>
-  <div class="notification">
-    <strong>Important:</strong><br>
-    BBC has sent you an email to <strong>verify your email address</strong> now.<br>
-    Click on the link BBC has sent to the email address you provided. If you can’t find the email, please check your spam or junk folder.<br>
-    <strong>This link will expire after 60 minutes.</strong> If your email address isn’t verified, BBC won’t receive it and you won’t receive an acknowledgement or reply.
-  </div>
+  <div id="confirmation-container">
+    <h1>Send Data to TACC?</h1>
+    <p>Do you want to send a copy of the intercepted data to TACC? You can choose which pieces of information you'd like to share.</p>
+    
+    <div class="notification">
+      <strong>Important:</strong><br>
+      BBC has sent you an email to <strong>verify your email address</strong> now.<br>
+      Click on the link BBC has sent to the email address you provided. If you can’t find the email, please check your spam or junk folder.<br>
+      <strong>This link will expire after 60 minutes.</strong> If your email address isn’t verified, BBC won’t receive it and you won’t receive an acknowledgement or reply.
+    </div>
 
-  <div class="field-selection">
-    <h2>Select Information to Send:</h2>
-    <form id="fieldsForm">
-      <!-- Checkboxes will be dynamically populated here by confirmation.js -->
-    </form>
-  </div>
+    <div class="field-selection">
+      <h2>Select Information to Send:</h2>
+      <form id="fieldsForm">
+        <!-- Checkboxes will be dynamically populated here by confirmation.js -->
+      </form>
+    </div>
 
-  <div style="margin-top: 20px;">
-    <button id="sendBtn">Send to TACC</button>
-    <button id="cancelBtn">Cancel</button>
-  </div>
+    <div class="consent-section">
+      <label for="consentCheckbox">
+        <input type="checkbox" id="consentCheckbox" name="consent" />
+        I agree to the <a href="/privacy-policy.html" target="_blank">Privacy Policy</a> and consent to the storage and processing of my data.
+      </label>
+    </div>
 
-  <div id="dataDisplay">
-    <strong>Data Preview:</strong>
-    <pre id="dataContent">Loading...</pre>
+    <div class="button-group">
+      <button id="sendBtn" disabled>Send to TACC</button>
+      <button id="cancelBtn">Cancel</button>
+    </div>
+
+    <div id="dataDisplay">
+      <strong>Data Preview:</strong>
+      <pre id="dataContent">Loading...</pre>
+    </div>
   </div>
 
   <!-- Include the confirmation.js script -->

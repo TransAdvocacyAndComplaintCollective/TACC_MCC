@@ -52,6 +52,15 @@ function generateId() {
   return uuid;
 }
 
+// Middleware to validate UUID format
+function validateUUID(req, res, next) {
+  const { uuid } = req.params;
+  const uuidV4Pattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[4][0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+  if (!uuidV4Pattern.test(uuid)) {
+    return res.status(400).json({ error: "Invalid UUID format." });
+  }
+  next();
+}
 // Create tables if they don't exist
 const createTables = () => {
   const queries = [
@@ -121,6 +130,44 @@ const createTables = () => {
 };
 
 createTables();
+
+
+
+// GET /api/companies/:uuid
+app.get("/api/companies/:uuid", validateUUID, (req, res) => {
+  const { uuid } = req.params;
+
+  const query = "SELECT company FROM intercepted_data WHERE id = ? LIMIT 1;";
+  db.query(query, [uuid], (err, results) => {
+    if (err) {
+      console.error("Database fetch error:", err.message);
+      return res.status(500).json({ error: "Failed to fetch company data." });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "No data found for the provided UUID." });
+    }
+
+    const company = results[0].company;
+    res.status(200).json({ company });
+  });
+});
+
+// GET /api/replies/:uuid
+app.get("/api/replies/:uuid", validateUUID, (req, res) => {
+  const { uuid } = req.params;
+
+  const query = "SELECT * FROM replies WHERE intercept_id = ? ORDER BY reply_order ASC;";
+  db.query(query, [uuid], (err, results) => {
+    if (err) {
+      console.error("Database fetch error:", err.message);
+      return res.status(500).json({ error: "Failed to fetch replies." });
+    }
+
+    res.status(200).json(results);
+  });
+});
+
 
 // Serve static files for replay endpoint
 app.use("/api/replay", express.static("public"));
