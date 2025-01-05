@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Complaint Details</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -100,6 +100,15 @@
     .input-section button:hover {
       background-color: #45a049;
     }
+
+    /* Spinner Centering */
+    .spinner-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
@@ -111,23 +120,76 @@
       <button onclick="loadComplaintDetails()">Submit</button>
     </div>
 
-    <div id="complaintDetails" class="detail">
+    <div id="complaintDetails" class="detail" style="display: none;">
       <label for="complaintTitle">Title:</label>
-      <p id="complaintTitle">Loading...</p>
+      <p id="complaintTitle"></p>
 
       <label for="complaintDescription">Description:</label>
-      <p id="complaintDescription">Loading...</p>
+      <p id="complaintDescription"></p>
     </div>
 
-    <div id="repliesSection" class="replies">
+    <div id="repliesSection" class="replies" style="display: none;">
       <h3>Replies</h3>
       <div id="repliesList">
-        <p>Loading...</p>
+        <!-- Replies will be appended here -->
       </div>
+    </div>
+
+    <div id="notification" class="notification" style="display: none;">
+      <!-- Notification messages will appear here -->
     </div>
   </div>
 
   <script>
+    /**
+     * Displays a Bootstrap spinner within the specified container.
+     * @param {HTMLElement} container - The container where the spinner will be inserted.
+     */
+    function showSpinner(container) {
+      container.innerHTML = `
+        <div class="spinner-container">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      `;
+      container.style.display = 'block';
+    }
+
+    /**
+     * Hides the spinner from the specified container.
+     * @param {HTMLElement} container - The container to clear the spinner from.
+     */
+    function hideSpinner(container) {
+      container.innerHTML = '';
+      container.style.display = 'none';
+    }
+
+    /**
+     * Displays a notification message.
+     * @param {string} message - The message to display.
+     * @param {string} type - The type of notification ('success', 'error', 'info').
+     */
+    function displayNotification(message, type = 'info') {
+      const notification = document.getElementById('notification');
+      notification.className = `notification ${type}`;
+      notification.textContent = message;
+      notification.style.display = 'block';
+    }
+
+    /**
+     * Clears the notification message.
+     */
+    function clearNotification() {
+      const notification = document.getElementById('notification');
+      notification.textContent = '';
+      notification.style.display = 'none';
+    }
+
+    /**
+     * Fetches and displays complaint details and replies based on the provided UUID.
+     * @param {string} uuid - The UUID of the complaint.
+     */
     async function fetchComplaintDetails(uuid) {
       const complaintDetails = document.getElementById('complaintDetails');
       const complaintTitle = document.getElementById('complaintTitle');
@@ -135,6 +197,15 @@
 
       const repliesSection = document.getElementById('repliesSection');
       const repliesList = document.getElementById('repliesList');
+
+      // Show loading spinners
+      showSpinner(complaintDetails);
+      showSpinner(repliesList);
+
+      // Hide previous details and notifications
+      complaintDetails.style.display = 'none';
+      repliesSection.style.display = 'none';
+      clearNotification();
 
       try {
         // Fetch complaint details
@@ -145,10 +216,16 @@
         const complaintData = await complaintResponse.json();
         complaintTitle.textContent = complaintData.complaint.title || 'No Title';
         complaintDescription.textContent = complaintData.complaint.description || 'No Description';
+        complaintDetails.style.display = 'block';
       } catch (error) {
+        // Display error in complaint details
         complaintTitle.textContent = 'Error fetching complaint details';
         complaintDescription.textContent = error.message;
-        console.error('Error fetching complaint details:', error);
+        complaintDetails.style.display = 'block';
+        displayNotification(error.message, 'error');
+      } finally {
+        // Hide complaint details spinner
+        hideSpinner(complaintDetails);
       }
 
       try {
@@ -177,29 +254,49 @@
             repliesList.appendChild(replyItem);
           });
         }
+        repliesSection.style.display = 'block';
       } catch (error) {
+        // Display error in replies section
         repliesList.innerHTML = '<p>Error loading replies.</p>';
-        console.error('Error fetching replies:', error);
+        repliesSection.style.display = 'block';
+        displayNotification(error.message, 'error');
+      } finally {
+        // Hide replies spinner
+        hideSpinner(repliesList);
       }
     }
 
+    /**
+     * Initiates the process to load complaint details based on user input.
+     */
     function loadComplaintDetails() {
       const uuidInput = document.getElementById('uuidInput').value.trim();
       if (uuidInput) {
-        fetchComplaintDetails(uuidInput);
+        // Basic UUID v4 validation
+        const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+        if (uuidPattern.test(uuidInput)) {
+          fetchComplaintDetails(uuidInput);
+        } else {
+          displayNotification('Please enter a valid UUID (UUID v4 format).', 'error');
+        }
       } else {
-        alert('Please enter a valid UUID.');
+        alert('Please enter a UUID.');
       }
     }
 
-    // Extract UUID from the query string
-    const params = new URLSearchParams(window.location.search);
-    const uuid = params.get('uuid');
+    /**
+     * Automatically load complaint details if UUID is present in the query string.
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const uuid = params.get('uuid');
 
-    if (uuid) {
-      document.getElementById('uuidInput').value = uuid;
-      fetchComplaintDetails(uuid);
-    }
+      if (uuid) {
+        document.getElementById('uuidInput').value = uuid;
+        // Trigger the complaint details loading
+        fetchComplaintDetails(uuid);
+      }
+    });
   </script>
 </body>
 </html>
