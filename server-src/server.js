@@ -135,7 +135,7 @@ createTables();
 app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
   const { uuid } = req.params;
 
-  const query = "SELECT intercepted_data FROM intercepted_data WHERE id = ? LIMIT 1;";
+  const query = "SELECT * FROM intercepted_data WHERE id = ? LIMIT 1;";
   db.query(query, [uuid], (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);
