@@ -114,15 +114,24 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const submitButton = document.getElementById('submitButton');
-      submitButton.addEventListener('click', loadComplaintDetails);
+      if (submitButton) {
+        submitButton.addEventListener('click', loadComplaintDetails);
+      } else {
+        console.error('Submit button not found.');
+      }
 
       // Automatically load complaint details if UUID is present in the query string.
       const params = new URLSearchParams(window.location.search);
       const uuid = params.get('uuid');
 
       if (uuid) {
-        document.getElementById('uuidInput').value = uuid;
-        fetchComplaintDetails(uuid);
+        const uuidInput = document.getElementById('uuidInput');
+        if (uuidInput) {
+          uuidInput.value = uuid;
+          fetchComplaintDetails(uuid);
+        } else {
+          console.error('UUID input field not found.');
+        }
       }
     });
 
@@ -131,14 +140,18 @@
      * @param {HTMLElement} container - The container where the spinner will be inserted.
      */
     function showSpinner(container) {
-      container.innerHTML = `
-        <div class="spinner-container">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+      if (container) {
+        container.innerHTML = `
+          <div class="spinner-container">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
           </div>
-        </div>
-      `;
-      container.style.display = 'block';
+        `;
+        container.style.display = 'block';
+      } else {
+        console.error('showSpinner: container is null');
+      }
     }
 
     /**
@@ -146,8 +159,12 @@
      * @param {HTMLElement} container - The container to clear the spinner from.
      */
     function hideSpinner(container) {
-      container.innerHTML = '';
-      container.style.display = 'none';
+      if (container) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+      } else {
+        console.error('hideSpinner: container is null');
+      }
     }
 
     /**
@@ -157,9 +174,13 @@
      */
     function displayNotification(message, type = 'info') {
       const notification = document.getElementById('notification');
-      notification.className = `notification ${type}`;
-      notification.textContent = message;
-      notification.style.display = 'block';
+      if (notification) {
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.display = 'block';
+      } else {
+        console.error('displayNotification: notification element not found');
+      }
     }
 
     /**
@@ -167,9 +188,13 @@
      */
     function clearNotification() {
       const notification = document.getElementById('notification');
-      notification.textContent = '';
-      notification.className = 'notification';
-      notification.style.display = 'none';
+      if (notification) {
+        notification.textContent = '';
+        notification.className = 'notification';
+        notification.style.display = 'none';
+      } else {
+        console.error('clearNotification: notification element not found');
+      }
     }
 
     /**
@@ -191,8 +216,12 @@
       showSpinner(repliesList);
 
       // Hide previous details and notifications
-      complaintDetails.style.display = 'none';
-      repliesSection.style.display = 'none';
+      if (complaintDetails) {
+        complaintDetails.style.display = 'none';
+      }
+      if (repliesSection) {
+        repliesSection.style.display = 'none';
+      }
       clearNotification();
 
       try {
@@ -202,14 +231,27 @@
           throw new Error('Complaint not found.');
         }
         const complaintData = await complaintResponse.json();
-        complaintTitle.textContent = complaintData.complaint.title || 'No Title';
-        complaintDescription.textContent = complaintData.complaint.description || 'No Description';
-        complaintDetails.style.display = 'block';
+
+        // Ensure complaintData has the expected structure
+        if (!complaintData.complaint) {
+          throw new Error('Invalid complaint data received.');
+        }
+
+        if (complaintTitle && complaintDescription && complaintDetails) {
+          complaintTitle.textContent = complaintData.complaint.title || 'No Title';
+          complaintDescription.textContent = complaintData.complaint.description || 'No Description';
+          complaintDetails.style.display = 'block';
+        } else {
+          console.error('complaintTitle, complaintDescription, or complaintDetails is null');
+          displayNotification('Error displaying complaint details.', 'error');
+        }
       } catch (error) {
         // Display error in complaint details
-        complaintTitle.textContent = 'Error fetching complaint details';
-        complaintDescription.textContent = error.message;
-        complaintDetails.style.display = 'block';
+        if (complaintTitle && complaintDescription && complaintDetails) {
+          complaintTitle.textContent = 'Error fetching complaint details';
+          complaintDescription.textContent = error.message;
+          complaintDetails.style.display = 'block';
+        }
         displayNotification(error.message, 'error');
       } finally {
         // Hide complaint details spinner
@@ -225,28 +267,37 @@
         const repliesData = await repliesResponse.json();
 
         // Clear existing replies
-        repliesList.innerHTML = '';
+        if (repliesList) {
+          repliesList.innerHTML = '';
 
-        if (repliesData.length === 0) {
-          repliesList.innerHTML = '<p>No replies yet.</p>';
+          if (repliesData.length === 0) {
+            repliesList.innerHTML = '<p>No replies yet.</p>';
+          } else {
+            repliesData.forEach(reply => {
+              const replyItem = document.createElement('div');
+              replyItem.className = 'reply-item';
+              replyItem.innerHTML = `
+                <h5>Reply ID: ${reply.id}</h5>
+                <p><strong>BBC Reference Number:</strong> ${reply.bbc_ref_number}</p>
+                <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
+                <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
+              `;
+              repliesList.appendChild(replyItem);
+            });
+          }
+          if (repliesSection) {
+            repliesSection.style.display = 'block';
+          }
         } else {
-          repliesData.forEach(reply => {
-            const replyItem = document.createElement('div');
-            replyItem.className = 'reply-item';
-            replyItem.innerHTML = `
-              <h5>Reply ID: ${reply.id}</h5>
-              <p><strong>BBC Reference Number:</strong> ${reply.bbc_ref_number}</p>
-              <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
-              <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
-            `;
-            repliesList.appendChild(replyItem);
-          });
+          console.error('repliesList element not found');
+          displayNotification('Replies section is missing.', 'error');
         }
-        repliesSection.style.display = 'block';
       } catch (error) {
         // Display error in replies section
-        repliesList.innerHTML = '<p>Error loading replies.</p>';
-        repliesSection.style.display = 'block';
+        if (repliesList && repliesSection) {
+          repliesList.innerHTML = '<p>Error loading replies.</p>';
+          repliesSection.style.display = 'block';
+        }
         displayNotification(error.message, 'error');
       } finally {
         // Hide replies spinner
