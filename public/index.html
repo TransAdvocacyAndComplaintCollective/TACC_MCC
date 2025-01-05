@@ -568,12 +568,10 @@
               // Handle Yes button
               document.getElementById("modalYes").onclick = () => {
                 // Reset specific fields instead of the entire form
-                replyForm.bbcRef.value = "";
                 replyForm.bbcReply.value = "";
-                replyForm.interceptId.value = "";
 
-                // Uncheck the GDPR consent checkbox
-                replyForm.gdprConsent.checked = false;
+              // fetchComplaintDetails function is called to refresh the replies list
+              fetchComplaintDetails(uuid);
 
                 // Disable the submit button again until consent is given
                 submitReplyBtn.disabled = true;
