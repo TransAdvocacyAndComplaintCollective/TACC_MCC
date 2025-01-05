@@ -98,22 +98,16 @@ function handleSuccess(complaintId) {
     fieldSelection.style.display = "none";
   }
 
-  // Hide the consent section
-  const consentSection = document.querySelector(".consent-section");
-  if (consentSection) {
-    consentSection.style.display = "none";
-  }
-
   // Disable the Send button to prevent multiple submissions
   const sendBtn = document.getElementById("sendBtn");
+
   sendBtn.disabled = true;
   sendBtn.style.display = "none";
 
   // Optionally, disable the Cancel button as well
   const cancelBtn = document.getElementById("cancelBtn");
-  cancelBtn.textContent = "Close Page";
-  cancelBtn.style.backgroundColor = "#28a745"; // Change to green
-  cancelBtn.style.color = "#ffffff";
+  cancelBtn.textContent = "close page";
+  cancelBtn.color = "green";
 
   // Display a success message with the complaint number and email verification instructions
   const dataContentEl = document.getElementById("dataContent");
@@ -121,17 +115,16 @@ function handleSuccess(complaintId) {
     dataContentEl.innerHTML = `
       <strong>Success!</strong> Your data has been sent successfully.<br>
       Your complaint number is: <strong>${complaintId}</strong>.<br><br>
-      Please check your email to verify your email address as per the instructions.
     `;
   } else {
     dataContentEl.innerHTML = `
       <strong>Success!</strong> Your data has been sent successfully.<br><br>
-      Please check your email to verify your email address as per the instructions.
     `;
   }
 
   // Optionally, store a flag in localStorage to prevent future submissions
 }
+
 // Utility function to update content display
 function displayContent(content, isError = false) {
   const dataContentEl = document.getElementById("dataContent");
@@ -234,6 +227,7 @@ async function sendDataToServer(selectedData) {
 
     // Display success message with complaint number (if available)
     if (responseData.id) {
+
       handleSuccess(responseData.id);
 
       // ----------------------------------------------------------
@@ -241,7 +235,12 @@ async function sendDataToServer(selectedData) {
       // ----------------------------------------------------------
       try {
         // 1) Retrieve existing array from storage
-        let bbcComplaints = JSON.parse(localStorage.getItem("bbcComplaints")) || [];
+        let { bbcComplaints } = await browser.storage.local.get(
+          "bbcComplaints"
+        );
+        if (!bbcComplaints) {
+          bbcComplaints = [];
+        }
         console.log(
           "Existing complaints stored in local storage:",
           bbcComplaints
@@ -259,7 +258,7 @@ async function sendDataToServer(selectedData) {
         console.log("New complaint stored in local storage:", newComplaint);
 
         // 4) Save updated array back to storage
-        localStorage.setItem("bbcComplaints", JSON.stringify(bbcComplaints));
+        await browser.storage.local.set({ bbcComplaints });
         console.log(
           "Complaint ID stored successfully in local storage (array)."
         );
@@ -305,19 +304,8 @@ if (originUrl && data) {
   console.error("Missing originUrl or data in the URL parameters.");
 }
 
-// Function to check consent
-function checkConsent() {
-  const consentCheckbox = document.getElementById("consentCheckbox");
-  return consentCheckbox.checked;
-}
-
 // Event listeners for buttons
 document.getElementById("sendBtn").addEventListener("click", () => {
-  if (!checkConsent()) {
-    alert("You must agree to the Privacy Policy to send your data.");
-    return;
-  }
-
   if (originUrl && data) {
     const selectedData = getSelectedData();
     if (Object.keys(selectedData).length === 0) {
@@ -331,30 +319,17 @@ document.getElementById("sendBtn").addEventListener("click", () => {
   }
 });
 
-// Event listener for consent checkbox to enable/disable send button
-document.getElementById("consentCheckbox").addEventListener("change", (e) => {
-  const sendBtn = document.getElementById("sendBtn");
-  sendBtn.disabled = !e.target.checked;
-});
-
-// Event listener for cancel button
 document.getElementById("cancelBtn").addEventListener("click", async () => {
   try {
-    // Check if browser API is available (e.g., if this is a browser extension)
-    if (typeof browser !== "undefined" && browser.tabs) {
-      // Query the active tab in the current window
-      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-
-      if (tabs.length > 0 && tabs[0].id) {
-        // Close the active tab
-        await browser.tabs.remove(tabs[0].id);
-      } else {
-        console.error("No active tab found to close.");
-        alert("Unable to close the tab programmatically. Please close it manually.");
-      }
+    // Query the active tab in the current window
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+    
+    if (tabs.length > 0 && tabs[0].id) {
+      // Close the active tab
+      await browser.tabs.remove(tabs[0].id);
     } else {
-      // Fallback for non-extension environments
-      window.close();
+      console.error("No active tab found to close.");
+      alert("Unable to close the tab programmatically. Please close it manually.");
     }
   } catch (error) {
     console.error("Error closing the tab:", error);
