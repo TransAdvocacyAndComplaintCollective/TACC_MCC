@@ -199,6 +199,38 @@
     .reply-item p {
       margin: 0;
     }
+
+    /* Consent Section */
+    .consent-section {
+      margin-top: 20px;
+    }
+
+    .consent-section label {
+      font-weight: normal;
+      display: flex;
+      align-items: center;
+    }
+
+    .consent-section input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 600px) {
+      button {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+
+    .notification {
+      background-color: #fff3cd;
+      border: 1px solid #ffeeba;
+      padding: 15px;
+      border-radius: 4px;
+      color: #856404;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -230,7 +262,15 @@
       <label for="bbcReply">Complaint Response:</label>
       <textarea id="bbcReply" name="bbcReply" required placeholder="Type your reply here..."></textarea>
 
-      <button type="submit">Submit Reply</button>
+      <!-- Consent Section -->
+      <div class="consent-section">
+        <label for="consentCheckbox">
+          <input type="checkbox" id="consentCheckbox" name="consent" />
+          I agree to the <a href="/privacy-policy.html" target="_blank">Privacy Policy</a> and consent to the storage and processing of my data.
+        </label>
+      </div>
+
+      <button type="submit" id="submitReplyBtn" disabled>Submit Reply</button>
     </form>
 
     <div id="messageContainer"></div>
@@ -275,6 +315,13 @@
       if (bbcReply.length === 0) {
         isValid = false;
         errors.push("Complaint Response cannot be empty.");
+      }
+
+      // Consent validation
+      const consentChecked = form.consent.checked;
+      if (!consentChecked) {
+        isValid = false;
+        errors.push("You must agree to the Privacy Policy to submit your reply.");
       }
 
       return { isValid, errors };
@@ -345,6 +392,25 @@
       messageContainer.appendChild(errorMessage);
     }
 
+    // Function to display success messages
+    function displaySuccess(message) {
+      const messageContainer = document.getElementById('messageContainer');
+      const successMessage = document.createElement('div');
+      successMessage.className = 'success-message';
+      successMessage.textContent = message;
+      messageContainer.appendChild(successMessage);
+    }
+
+    // Function to display loading messages
+    function displayLoading(message) {
+      const messageContainer = document.getElementById('messageContainer');
+      const loadingMessage = document.createElement('div');
+      loadingMessage.className = 'loading-message';
+      loadingMessage.textContent = message;
+      messageContainer.appendChild(loadingMessage);
+      return loadingMessage; // Return element to allow removal
+    }
+
     // Event listener for TACC Record ID field
     document.getElementById('interceptId').addEventListener('blur', function() {
       const uuid = this.value.trim();
@@ -357,11 +423,7 @@
 
       if (uuid && interceptIdPattern.test(uuid)) {
         // Show loading message
-        const messageContainer = document.getElementById('messageContainer');
-        const loadingMessage = document.createElement('div');
-        loadingMessage.className = 'loading-message';
-        loadingMessage.textContent = 'Fetching complaint details...';
-        messageContainer.appendChild(loadingMessage);
+        const loadingMessage = displayLoading('Fetching complaint details...');
 
         // Fetch and display complaint details
         fetchComplaintDetails(uuid).then(() => {
@@ -402,10 +464,7 @@
       };
 
       // Show loading message
-      const loadingMessage = document.createElement('div');
-      loadingMessage.className = 'loading-message';
-      loadingMessage.textContent = 'Submitting your reply... Please wait.';
-      messageContainer.appendChild(loadingMessage);
+      const loadingMessage = displayLoading('Submitting your reply... Please wait.');
 
       try {
         const response = await fetch('/api/replies', {
@@ -434,6 +493,16 @@
             messageContainer.innerHTML = '';
             document.getElementById('complaintDetails').style.display = 'none';
             document.getElementById('repliesSection').style.display = 'none';
+
+            // Hide the consent section
+            const consentSection = document.querySelector('.consent-section');
+            if (consentSection) {
+              consentSection.style.display = 'none';
+            }
+
+            // Disable the submit button again until consent is given
+            const submitBtn = document.getElementById('submitReplyBtn');
+            submitBtn.disabled = true;
           };
 
           // Handle No button
@@ -485,6 +554,14 @@
       if (event.key === 'Escape' && customModal.style.display === 'flex') {
         event.preventDefault();
       }
+    });
+
+    // Handle Consent Checkbox
+    const consentCheckbox = document.getElementById('consentCheckbox');
+    const submitReplyBtn = document.getElementById('submitReplyBtn');
+
+    consentCheckbox.addEventListener('change', function() {
+      submitReplyBtn.disabled = !this.checked;
     });
   </script>
 </body>
