@@ -132,10 +132,26 @@ createTables();
 
 
 // GET /api/companies/:uuid
+// GET /api/complaint/:uuid
 app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
   const { uuid } = req.params;
 
-  const query = "SELECT * FROM intercepted_data WHERE id = ? LIMIT 1;";
+  // Query to fetch the complaint details
+  const query = `
+    SELECT 
+      id,
+      originUrl,
+      description,
+      programme,
+      transmissiondate,
+      transmissiontime,
+      title,
+      timestamp
+    FROM intercepted_data 
+    WHERE id = ? 
+    LIMIT 1;
+  `;
+
   db.query(query, [uuid], (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);
@@ -143,11 +159,30 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
     }
 
     if (results.length === 0) {
+      // Handle case where no complaint is found for the given UUID
       return res.status(404).json({ error: "No data found for the provided UUID." });
     }
 
-    const complaint = results[0].complaint;
-    res.status(200).json({ complaint });
+    // Mask sensitive data (e.g., URLs or personal identifiers)
+    const complaintData = results[0];
+    const response = {
+      complaint: {
+        id: complaintData.id,
+        originUrl: complaintData.originUrl ? "[REDACTED]" : null, // Mask origin URL
+        description: complaintData.description || null,
+        programme: complaintData.programme || null,
+        transmissiondate: complaintData.transmissiondate || null,
+        transmissiontime: complaintData.transmissiontime || null,
+        title: complaintData.title || null,
+        timestamp: complaintData.timestamp || null,
+      },
+    };
+
+    // Log data access for auditing purposes
+    console.log(`Complaint data accessed for ID: ${uuid}`);
+
+    // Respond with the formatted complaint data
+    res.status(200).json(response);
   });
 });
 
