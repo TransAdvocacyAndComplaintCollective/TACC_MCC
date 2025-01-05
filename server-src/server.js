@@ -190,7 +190,9 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
 app.get("/api/replies/:uuid", validateUUID, (req, res) => {
   const { uuid } = req.params;
 
-  const query = "SELECT * FROM replies WHERE intercept_id = ? ORDER BY reply_order ASC;";
+  // Corrected query: Order by timestamp instead of nonexistent reply_order
+  const query = "SELECT * FROM replies WHERE intercept_id = ? ORDER BY timestamp ASC;";
+
   db.query(query, [uuid], (err, results) => {
     if (err) {
       console.error("Database fetch error:", err.message);

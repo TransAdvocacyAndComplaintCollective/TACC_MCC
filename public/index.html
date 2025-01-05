@@ -360,7 +360,7 @@
         // Fetch existing replies
         const repliesResponse = await fetch(`/api/replies/${uuid}`);
         if (!repliesResponse.ok) {
-          throw new Error('Failed to fetch replies.');
+          return; // No need to throw an error if replies are not found
         }
         const repliesData = await repliesResponse.json();
 
