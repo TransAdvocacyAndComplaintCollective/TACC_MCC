@@ -4,41 +4,174 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Complaint Details</title>
+  
+  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" defer></script>
+  
+  <!-- Custom Styles -->
   <style>
-    /* Your existing CSS */
+    body {
+      background-color: #FAFBFC;
+      color: #3a4f66;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 30px;
+      margin-bottom: 20px;
+      color: #4CAF50;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    #uuidInput {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    #uuidInput:focus {
+      border-color: #4CAF50;
+      box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+      outline: none;
+    }
+
+    #submitButton {
+      padding: 10px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #submitButton:hover {
+      background-color: #45a049;
+    }
+
+    .detail, .replies {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .detail label {
+      font-weight: bold;
+    }
+
+    .reply {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+
+    .reply:last-child {
+      border-bottom: none;
+    }
+
+    .notification {
+      padding: 15px;
+      border-radius: 4px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .notification.info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .notification.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .notification.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .spinner-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+    }
+
+    @media (max-width: 576px) {
+      .input-section {
+        flex-direction: column;
+      }
+    }
   </style>
+  
+  <!-- Bootstrap JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
 <body>
   <div class="container">
     <h1>Complaint Details</h1>
 
+    <!-- Input Section -->
     <div class="input-section">
-      <input type="text" id="uuidInput" placeholder="Enter UUID">
-      <button id="submitButton">Submit</button>
+      <input type="text" id="uuidInput" class="form-control" placeholder="Enter UUID (e.g., 123e4567-e89b-12d3-a456-426614174000)">
+      <button id="submitButton" class="btn btn-success">Submit</button>
     </div>
 
+    <!-- Notification Area -->
+    <div id="notification" class="notification"></div>
+
+    <!-- Complaint Details Section -->
     <div id="complaintDetails" class="detail" style="display: none;">
-      <label for="complaintTitle">Title:</label>
-      <p id="complaintTitle"></p>
-
-      <label for="complaintDescription">Description:</label>
-      <p id="complaintDescription"></p>
-    </div>
-
-    <div id="repliesSection" class="replies" style="display: none;">
-      <h3>Replies</h3>
-      <div id="repliesList">
-        <!-- Replies will be appended here -->
+      <h3>Complaint Information</h3>
+      <div class="mb-3">
+        <label for="complaintTitle" class="form-label">Title:</label>
+        <p id="complaintTitle" class="form-control-plaintext"></p>
+      </div>
+      <div class="mb-3">
+        <label for="complaintDescription" class="form-label">Description:</label>
+        <p id="complaintDescription" class="form-control-plaintext"></p>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Origin URL:</label>
+        <p id="complaintOriginUrl" class="form-control-plaintext"><a href="#" target="_blank">View Origin</a></p>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Timestamp:</label>
+        <p id="complaintTimestamp" class="form-control-plaintext"></p>
       </div>
     </div>
 
-    <div id="notification" class="notification" style="display: none;">
-      <!-- Notification messages will appear here -->
+    <!-- Replies Section -->
+    <div id="repliesSection" class="replies" style="display: none;">
+      <h3>Replies</h3>
+      <div id="repliesList">
+        <!-- Replies will be dynamically inserted here -->
+      </div>
     </div>
   </div>
 
+  <!-- Custom Scripts -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const submitButton = document.getElementById('submitButton');
@@ -75,7 +208,6 @@
      */
     function hideSpinner(container) {
       container.innerHTML = '';
-      container.style.display = 'none';
     }
 
     /**
@@ -96,6 +228,7 @@
     function clearNotification() {
       const notification = document.getElementById('notification');
       notification.textContent = '';
+      notification.className = 'notification';
       notification.style.display = 'none';
     }
 
@@ -107,14 +240,13 @@
       const complaintDetails = document.getElementById('complaintDetails');
       const complaintTitle = document.getElementById('complaintTitle');
       const complaintDescription = document.getElementById('complaintDescription');
+      const complaintOriginUrl = document.getElementById('complaintOriginUrl');
+      const complaintTimestamp = document.getElementById('complaintTimestamp');
 
       const repliesSection = document.getElementById('repliesSection');
       const repliesList = document.getElementById('repliesList');
 
       console.log('Fetching details for UUID:', uuid);
-      console.log('complaintDetails:', complaintDetails);
-      console.log('complaintTitle:', complaintTitle);
-      console.log('complaintDescription:', complaintDescription);
 
       // Show loading spinners
       showSpinner(complaintDetails);
@@ -129,15 +261,35 @@
         // Fetch complaint details
         const complaintResponse = await fetch(`/api/complaint/${uuid}`);
         if (!complaintResponse.ok) {
-          throw new Error('Complaint not found.');
+          if (complaintResponse.status === 404) {
+            throw new Error('No complaint found with the provided UUID.');
+          } else {
+            throw new Error('Error fetching complaint details.');
+          }
         }
         const complaintData = await complaintResponse.json();
-        complaintTitle.textContent = complaintData.title || 'No Title';
-        complaintDescription.textContent = complaintData.description || 'No Description';
+        
+        // Populate complaint details
+        complaintTitle.textContent = complaintData.complaint.title || 'N/A';
+        complaintDescription.textContent = complaintData.complaint.description || 'N/A';
+        
+        // Handle Origin URL (Redacted or actual link based on server response)
+        if (complaintData.complaint.originUrl && complaintData.complaint.originUrl !== "[REDACTED]") {
+          const originLink = complaintOriginUrl.querySelector('a');
+          originLink.href = complaintData.complaint.originUrl;
+          originLink.textContent = "View Origin";
+        } else {
+          complaintOriginUrl.textContent = "[REDACTED]";
+        }
+
+        // Format timestamp
+        const timestamp = new Date(complaintData.complaint.timestamp);
+        complaintTimestamp.textContent = isNaN(timestamp) ? 'N/A' : timestamp.toLocaleString();
+
         complaintDetails.style.display = 'block';
       } catch (error) {
         // Display error in complaint details
-        complaintTitle.textContent = 'Error fetching complaint details';
+        complaintTitle.textContent = 'Error';
         complaintDescription.textContent = error.message;
         complaintDetails.style.display = 'block';
         displayNotification(error.message, 'error');
@@ -150,7 +302,11 @@
         // Fetch existing replies
         const repliesResponse = await fetch(`/api/replies/${uuid}`);
         if (!repliesResponse.ok) {
-          throw new Error('No replies found.');
+          if (repliesResponse.status === 404) {
+            throw new Error('No replies found for this complaint.');
+          } else {
+            throw new Error('Error fetching replies.');
+          }
         }
         const repliesData = await repliesResponse.json();
 
@@ -158,7 +314,7 @@
         repliesList.innerHTML = '';
 
         if (repliesData.length === 0) {
-          repliesList.innerHTML = '<p>No replies yet.</p>';
+          repliesList.innerHTML = '<p class="text-muted">No replies yet.</p>';
         } else {
           repliesData.forEach(reply => {
             const replyItem = document.createElement('div');
@@ -175,7 +331,7 @@
         repliesSection.style.display = 'block';
       } catch (error) {
         // Display error in replies section
-        repliesList.innerHTML = '<p>Error loading replies.</p>';
+        repliesList.innerHTML = `<p class="text-danger">${error.message}</p>`;
         repliesSection.style.display = 'block';
         displayNotification(error.message, 'error');
       } finally {
@@ -198,7 +354,7 @@
           displayNotification('Please enter a valid UUID (UUID v4 format).', 'error');
         }
       } else {
-        alert('Please enter a UUID.');
+        displayNotification('Please enter a UUID.', 'error');
       }
     }
   </script>
