@@ -198,7 +198,7 @@
               : repliesData
                   .map(
                     (reply) =>
-                      `<div><h5>Reply ID: ${reply.id}</h5><p>${reply.bbc_reply}</p></div>`
+                      `<div><p>${reply.bbc_reply}</p></div>`
                   )
                   .join("");
           document.getElementById("repliesSection").style.display = "block";
