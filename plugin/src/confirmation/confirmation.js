@@ -1,5 +1,3 @@
-// confirmation.js
-
 // List of fields to manage
 const fields = [
   "originUrl",
@@ -74,7 +72,7 @@ const fieldDetails = {
   title: { name: "Title", optional: false },
   transmissiondate: { name: "Transmission Date", optional: false },
   transmissiontime: { name: "Transmission Time", optional: false },
-  under18: { name: "Under 18", optional: false }, // <-- Un-commented
+  under18: { name: "Under 18", optional: false },
   verifyform: { name: "Verify Form", optional: false },
   complaint_nature: { name: "Complaint Nature", optional: false },
   complaint_nature_sounds: {
@@ -92,37 +90,21 @@ const data = urlParams.get("data")
 
 // Function to handle UI changes upon successful submission
 function handleSuccess(complaintId) {
-  // Hide the field selection form
   const fieldSelection = document.querySelector(".field-selection");
-  if (fieldSelection) {
-    fieldSelection.style.display = "none";
-  }
+  if (fieldSelection) fieldSelection.style.display = "none";
 
-  // Disable the Send button to prevent multiple submissions
   const sendBtn = document.getElementById("sendBtn");
-
   sendBtn.disabled = true;
   sendBtn.style.display = "none";
 
-  // Optionally, disable the Cancel button as well
   const cancelBtn = document.getElementById("cancelBtn");
-  cancelBtn.textContent = "close page";
-  cancelBtn.color = "green";
+  cancelBtn.textContent = "Close Page";
+  cancelBtn.style.color = "green";
 
-  // Display a success message with the complaint number and email verification instructions
   const dataContentEl = document.getElementById("dataContent");
-  if (complaintId) {
-    dataContentEl.innerHTML = `
-      <strong>Success!</strong> Your data has been sent successfully.<br>
-      Your complaint number is: <strong>${complaintId}</strong>.<br><br>
-    `;
-  } else {
-    dataContentEl.innerHTML = `
-      <strong>Success!</strong> Your data has been sent successfully.<br><br>
-    `;
-  }
-
-  // Optionally, store a flag in localStorage to prevent future submissions
+  dataContentEl.innerHTML = complaintId
+    ? `<strong>Success!</strong> Your data has been sent successfully.<br>Your complaint number is: <strong>${complaintId}</strong>.`
+    : `<strong>Success!</strong> Your data has been sent successfully.`;
 }
 
 // Utility function to update content display
@@ -135,42 +117,29 @@ function displayContent(content, isError = false) {
 // Initialize the form with checkboxes
 function initializeFieldSelection(parsedData) {
   const form = document.getElementById("fieldsForm");
-  console.log("Initializing field selection form...", parsedData);
   fields.forEach((field) => {
-    // Only create checkbox if the field exists in the data
     if (parsedData.hasOwnProperty(field)) {
       const label = document.createElement("label");
-
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.id = field;
       checkbox.name = field;
       checkbox.value = "true";
-      // Disable checkbox for fields that are not optional
       checkbox.disabled = !fieldDetails[field]?.optional;
-      checkbox.checked = true; // Default to checked
-
-      // Append checkbox to label
+      checkbox.checked = true;
       label.appendChild(checkbox);
 
-      // Create label text
       const fieldName = fieldDetails[field]?.name || field;
+      label.appendChild(document.createTextNode(` ${fieldName}`));
       if (fieldDetails[field]?.optional) {
-        label.appendChild(document.createTextNode(` ${fieldName} `));
         const optionalSpan = document.createElement("span");
         optionalSpan.className = "optional";
         optionalSpan.textContent = "(Optional)";
         label.appendChild(optionalSpan);
-      } else {
-        label.appendChild(document.createTextNode(` ${fieldName}`));
       }
-
-      // Append label to form
       form.appendChild(label);
     }
   });
-
-  // Add event listeners to checkboxes to update data preview dynamically
   form.addEventListener("change", updateDataPreview);
 }
 
@@ -179,160 +148,88 @@ function getSelectedData() {
   const selectedData = {};
   fields.forEach((field) => {
     const checkbox = document.getElementById(field);
-    if (checkbox && checkbox.checked && parsedformData.hasOwnProperty(field)) {
+    if (checkbox?.checked && parsedformData.hasOwnProperty(field)) {
       selectedData[field] = parsedformData[field];
     }
   });
 
-  // ----------------------------------------------------------
-  // If the user is under 18, remove emailaddress, firstname, and lastname
-  // ----------------------------------------------------------
   if (selectedData.under18 === "true" || selectedData.under18 === true) {
     delete selectedData.emailaddress;
     delete selectedData.firstname;
     delete selectedData.lastname;
   }
 
-  // Always include originUrl if we have it
-  if (originUrl) {
-    selectedData.originUrl = originUrl;
-  }
-  console.log("Selected Data:", selectedData);
+  if (originUrl) selectedData.originUrl = originUrl;
   return selectedData;
 }
 
-// Function to send data to your server's /intercept endpoint
+// Function to send data to your server
 async function sendDataToServer(selectedData) {
   try {
     const response = await fetch("https://www.tacc.org.uk/api/intercept", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        originUrl: selectedData.originUrl,
-        interceptedData: selectedData,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ originUrl: selectedData.originUrl, interceptedData: selectedData }),
     });
 
-    if (!response.ok) {
-      console.error("Failed to send data to server:", response.statusText);
-      alert("Failed to send data. Please try again.");
-      return;
-    }
+    if (!response.ok) throw new Error("Failed to send data. Please try again.");
 
-    // Parse the server response
     const responseData = await response.json();
-    console.log("Data successfully sent to server:", responseData);
+    handleSuccess(responseData.id);
 
-    // Display success message with complaint number (if available)
-    if (responseData.id) {
-
-      handleSuccess(responseData.id);
-
-      // ----------------------------------------------------------
-      // Store complaint ID and date in local storage as part of an array (bbcComplaints).
-      // ----------------------------------------------------------
-      try {
-        // 1) Retrieve existing array from storage
-        let { bbcComplaints } = await browser.storage.local.get(
-          "bbcComplaints"
-        );
-        if (!bbcComplaints) {
-          bbcComplaints = [];
-        }
-        console.log(
-          "Existing complaints stored in local storage:",
-          bbcComplaints
-        );
-
-        // 2) Build new complaint object
-        const newComplaint = {
-          subject: selectedData.title,
-          id: responseData.id,
-          dateRetrieved: Date.now(), // or new Date().toISOString()
-        };
-
-        // 3) Add to array
-        bbcComplaints.push(newComplaint);
-        console.log("New complaint stored in local storage:", newComplaint);
-
-        // 4) Save updated array back to storage
-        await browser.storage.local.set({ bbcComplaints });
-        console.log(
-          "Complaint ID stored successfully in local storage (array)."
-        );
-      } catch (err) {
-        console.error("Error storing complaint ID:", err);
-      }
-    } else {
-      alert("Data sent successfully, but no TACC Record ID was returned.");
+    try {
+      const { bbcComplaints = [] } = await browser.storage.local.get("bbcComplaints");
+      bbcComplaints.push({
+        subject: selectedData.title,
+        id: responseData.id,
+        dateRetrieved: Date.now(),
+      });
+      await browser.storage.local.set({ bbcComplaints });
+    } catch (err) {
+      console.error("Error storing complaint ID:", err);
     }
   } catch (error) {
-    console.error("Error sending data to server:", error);
-    alert(
-      "An error occurred while sending data. Please check the console for details."
-    );
+    console.error("Error:", error);
+    alert("An error occurred while sending data.");
   }
 }
 
-// Function to update data preview based on selected fields
+// Function to update data preview
 function updateDataPreview() {
   const selectedData = getSelectedData();
-  const formattedJson = JSON.stringify(selectedData, null, 2); // Pretty-print JSON
+  const formattedJson = JSON.stringify(selectedData, null, 2);
   displayContent(formattedJson);
 }
 
-// Validate and display originUrl and data
+// Validate and initialize form
 let parsedData = {};
 let parsedformData = {};
 if (originUrl && data) {
   try {
     parsedData = JSON.parse(data);
-    parsedformData = parsedData.formData || {}; // Ensure formData exists
-    console.log("Parsed Data:", parsedData);
+    parsedformData = parsedData.formData || {};
     initializeFieldSelection(parsedformData);
-    console.log("Origin URL:", originUrl);
-    console.log("Parsed Data:", parsedformData);
-    updateDataPreview(); // Initialize data preview
+    updateDataPreview();
   } catch (error) {
-    displayContent("Invalid JSON format:\n" + data, true);
-    console.error("Error parsing JSON:", error);
+    displayContent("Invalid JSON format.", true);
   }
 } else {
   displayContent("No data available to display.", true);
-  console.error("Missing originUrl or data in the URL parameters.");
 }
 
 // Event listeners for buttons
 document.getElementById("sendBtn").addEventListener("click", () => {
-  if (originUrl && data) {
-    const selectedData = getSelectedData();
-    if (Object.keys(selectedData).length === 0) {
-      alert("No data selected to send.");
-      return;
-    }
-    console.log("Attempting to send selected data to server...");
-    sendDataToServer(selectedData);
-  } else {
-    alert("Data or origin URL is missing. Cannot send to server.");
-  }
+  if (!originUrl || !data) return alert("Data or origin URL is missing.");
+  const selectedData = getSelectedData();
+  if (Object.keys(selectedData).length === 0) return alert("No data selected.");
+  sendDataToServer(selectedData);
 });
 
 document.getElementById("cancelBtn").addEventListener("click", async () => {
   try {
-    // Query the active tab in the current window
     const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    
-    if (tabs.length > 0 && tabs[0].id) {
-      // Close the active tab
-      await browser.tabs.remove(tabs[0].id);
-    } else {
-      console.error("No active tab found to close.");
-      alert("Unable to close the tab programmatically. Please close it manually.");
-    }
-  } catch (error) {
-    console.error("Error closing the tab:", error);
-    alert("Unable to close the tab programmatically. Please close it manually.");
+    if (tabs.length && tabs[0].id) await browser.tabs.remove(tabs[0].id);
+  } catch {
+    alert("Please close the tab manually.");
   }
 });
