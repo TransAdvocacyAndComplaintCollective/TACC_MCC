@@ -274,14 +274,8 @@ app.post("/api/replies", (req, res) => {
   const { bbc_ref_number, intercept_id, bbc_reply } = req.body;
 
   // Basic validation for required fields
-  if (!bbc_ref_number || !intercept_id || !bbc_reply) {
+  if (!intercept_id || !bbc_reply) {
     return res.status(400).json({ error: "Missing required fields." });
-  }
-
-  // Validate BBC Reference Number format
-  const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
-  if (!bbcRefPattern.test(bbc_ref_number)) {
-    return res.status(400).json({ error: "Invalid BBC Reference Number format." });
   }
 
   // Validate intercept_id format (UUID v4)
