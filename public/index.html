@@ -277,7 +277,6 @@
           type="text"
           id="bbcRef"
           name="bbcRef"
-          required
           pattern="^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$"
           title="BBC Reference Number should follow the format AAA-1234567-ABC123."
         />
@@ -345,7 +344,7 @@
         // BBC Reference Number validation
         const bbcRef = form.bbcRef.value.trim();
         const bbcRefPattern = /^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$/;
-        if (!bbcRefPattern.test(bbcRef)) {
+        if (!bbcRefPattern.test(bbcRef) && bbcRef.length > 0) {
           isValid = false;
           errors.push(
             "BBC Reference Number should follow the format AAA-1234567-ABC123."
@@ -473,10 +472,12 @@
       // Auto-focus on interceptId field when page loads
       window.onload = function () {
         document.getElementById("interceptId").focus();
-        const uuid = getQueryParam('uuid');
+        const uuid = getQueryParam("uuid");
         if (uuid) {
           document.getElementById("interceptId").value = uuid;
-          document.getElementById("interceptId").dispatchEvent(new Event("blur"));
+          document
+            .getElementById("interceptId")
+            .dispatchEvent(new Event("blur"));
         }
       };
 
@@ -567,34 +568,34 @@
 
               // Handle Yes button
               document.getElementById("modalYes").onclick = () => {
-                // Reset specific fields instead of the entire form
+                // Keep TACC Record ID, BBC Reference Number, and GDPR checkbox values
+                const interceptId = replyForm.interceptId.value.trim();
+                const bbcRef = replyForm.bbcRef.value.trim();
+                const gdprConsentChecked = gdprConsentCheckbox.checked;
+
+                // Clear unnecessary fields (e.g., BBC Reply field)
                 replyForm.bbcReply.value = "";
 
-              // fetchComplaintDetails function is called to refresh the replies list
-              fetchComplaintDetails(uuid);
-
-                // Disable the submit button again until consent is given
-                submitReplyBtn.disabled = true;
-
-                // Hide the consent section if desired
-                const consentSections =
-                  document.querySelectorAll(".consent-section");
-                consentSections.forEach((section) => {
-                  section.style.display = "block";
-                });
+                // Re-enable the submit button based on GDPR consent
+                submitReplyBtn.disabled = !gdprConsentChecked;
 
                 // Hide the modal
                 customModal.style.display = "none";
 
-                // Clear messages and hide complaint details & replies
-                messageContainer.innerHTML = "";
-                document.getElementById("complaintDetails").style.display =
-                  "none";
-                document.getElementById("repliesSection").style.display =
-                  "none";
+                // Refresh the replies list to include the new reply
+                if (interceptId) {
+                  fetchComplaintDetails(interceptId)
+                    .then(() => {
+                      // Optionally log success for debugging
+                      console.log("Replies reloaded successfully.");
+                    })
+                    .catch((error) => {
+                      console.error("Error reloading replies:", error);
+                    });
+                }
 
-                // Focus back on the TACC Record ID field
-                document.getElementById("interceptId").focus();
+                // Focus back on the BBC Reply field for a new reply
+                replyForm.bbcReply.focus();
               };
 
               // Handle No button
