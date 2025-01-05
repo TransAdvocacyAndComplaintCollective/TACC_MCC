@@ -80,7 +80,6 @@
       margin-top: 10px;
     }
 
-    /* Complaint Details Section */
     .complaint-details {
       margin-top: 20px;
       padding: 15px;
@@ -89,46 +88,16 @@
       background-color: #f9f9f9;
     }
 
-    .complaint-details h3 {
-      margin-bottom: 10px;
-    }
-
     .replies-section {
       margin-top: 20px;
     }
 
-    .reply-item {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
+    .uuid-form {
+      margin-bottom: 20px;
     }
 
-    .reply-item:last-child {
-      border-bottom: none;
-    }
-
-    .reply-item h5 {
-      margin-bottom: 5px;
-    }
-
-    .reply-item p {
-      margin: 0;
-    }
-
-    .notification {
-      background-color: #fff3cd;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      border-radius: 4px;
-      color: #856404;
-      margin-top: 20px;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 600px) {
-      button {
-        width: 100%;
-        margin: 10px 0;
-      }
+    .replay-button {
+      margin-top: 15px;
     }
   </style>
 </head>
@@ -137,8 +106,8 @@
   <div class="container">
     <div id="messageContainer"></div>
 
-    <!-- Form to input UUID if not provided in URL -->
-    <form id="uuidForm" novalidate style="display: none;">
+    <!-- Form to input UUID -->
+    <form id="uuidForm" class="uuid-form">
       <label for="uuidInput">Enter TACC Record ID (UUID v4):</label>
       <input type="text" id="uuidInput" name="uuidInput" required pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$" title="Please enter a valid TACC Record ID (UUID v4).">
       <button type="submit">View Complaint</button>
@@ -150,13 +119,16 @@
       <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
       <p><strong>Description:</strong></p>
       <p id="complaintDescription"></p>
+
+      <!-- Replay Button -->
+      <button id="replayButton" class="replay-button" style="display: none;">View Full Replay</button>
     </div>
 
     <!-- Existing Replies -->
     <div id="repliesSection" class="replies-section" style="display: none;">
       <h3>Existing Replies</h3>
       <div id="repliesList">
-        <!-- Existing replies will be appended here -->
+        <!-- Replies will be appended here -->
       </div>
     </div>
   </div>
@@ -183,88 +155,42 @@
       messageContainer.appendChild(errorMessage);
     }
 
-    // Function to display loading messages
-    function displayLoading(message) {
-      const messageContainer = document.getElementById('messageContainer');
-      const loadingMessage = document.createElement('div');
-      loadingMessage.className = 'loading-message';
-      loadingMessage.textContent = message;
-      messageContainer.appendChild(loadingMessage);
-      return loadingMessage; // Return element to allow removal
-    }
-
     // Function to fetch and display complaint details
     async function fetchComplaintDetails(uuid) {
       const complaintDetails = document.getElementById('complaintDetails');
       const complaintTitle = document.getElementById('complaintTitle');
       const complaintDescription = document.getElementById('complaintDescription');
-
-      const repliesSection = document.getElementById('repliesSection');
-      const repliesList = document.getElementById('repliesList');
+      const replayButton = document.getElementById('replayButton');
 
       try {
-        // Fetch complaint details
-        const complaintResponse = await fetch(`/api/complaint/${uuid}`);
-        if (!complaintResponse.ok) {
+        const response = await fetch(`/api/complaint/${uuid}`);
+        if (!response.ok) {
           throw new Error('Complaint not found.');
         }
-        const complaintData = await complaintResponse.json();
-        complaintTitle.textContent = complaintData.complaint.title || 'No Title';
-        complaintDescription.textContent = complaintData.complaint.description || 'No Description';
+        const data = await response.json();
+        complaintTitle.textContent = data.complaint.title || 'No Title';
+        complaintDescription.textContent = data.complaint.description || 'No Description';
+
+        // Show complaint details
         complaintDetails.style.display = 'block';
+
+        // Update and show replay button
+        replayButton.style.display = 'block';
+        replayButton.onclick = () => {
+          window.location.href = `https://tacc.org.uk/api/replay/index.html?uuid=${uuid}`;
+        };
       } catch (error) {
-        // Hide complaint details if fetching fails
         complaintDetails.style.display = 'none';
         displayError(error.message);
-        console.error('Error fetching complaint details:', error);
-        return; // Exit the function if complaint details cannot be fetched
-      }
-
-      try {
-        // Fetch existing replies
-        const repliesResponse = await fetch(`/api/replies/${uuid}`);
-        if (!repliesResponse.ok) {
-          repliesList.innerHTML = '<p>No replies found.</p>';
-          repliesSection.style.display = 'block';
-          return; // No need to throw an error if replies are not found
-        }
-        const repliesData = await repliesResponse.json();
-
-        // Clear existing replies
-        repliesList.innerHTML = '';
-
-        if (repliesData.length === 0) {
-          repliesList.innerHTML = '<p>No replies yet.</p>';
-        } else {
-          repliesData.forEach(reply => {
-            const replyItem = document.createElement('div');
-            replyItem.className = 'reply-item';
-            replyItem.innerHTML = `
-              <h5>Reply ID: ${reply.id}</h5>
-              <p><strong>BBC Reference Number:</strong> ${reply.bbc_ref_number}</p>
-              <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
-              <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
-            `;
-            repliesList.appendChild(replyItem);
-          });
-        }
-
-        repliesSection.style.display = 'block';
-      } catch (error) {
-        // Hide replies section if fetching fails
-        repliesSection.style.display = 'none';
-        displayError('Error fetching replies.');
-        console.error('Error fetching replies:', error);
       }
     }
 
-    // Handle form submission to input UUID
+    // Handle form submission
     document.getElementById('uuidForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const uuidInput = document.getElementById('uuidInput').value.trim();
       if (isValidUUID(uuidInput)) {
-        // Redirect to show.html with the provided UUID
-        window.location.href = `show.html?uuid=${uuidInput}`;
+        fetchComplaintDetails(uuidInput);
       } else {
         displayError('Please enter a valid UUID v4.');
       }
@@ -273,26 +199,8 @@
     // On page load
     window.onload = function() {
       const uuid = getQueryParam('uuid');
-      const uuidForm = document.getElementById('uuidForm');
-      const messageContainer = document.getElementById('messageContainer');
-
       if (uuid && isValidUUID(uuid)) {
-        // If UUID is present and valid, fetch and display complaint details
-        const loadingMessage = displayLoading('Fetching complaint details...');
-        fetchComplaintDetails(uuid).then(() => {
-          loadingMessage.remove();
-        }).catch(() => {
-          loadingMessage.remove();
-        });
-      } else {
-        if (uuid) {
-          // If UUID is present but invalid, show error and display form
-          displayError('Invalid UUID provided.');
-        }
-        // Show the form to input UUID
-        uuidForm.style.display = 'block';
-        // Auto-focus on the UUID input field
-        document.getElementById('uuidInput').focus();
+        fetchComplaintDetails(uuid);
       }
     };
   </script>
