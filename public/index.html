@@ -264,14 +264,6 @@
       <label for="bbcReply">Complaint Response:</label>
       <textarea id="bbcReply" name="bbcReply" required placeholder="Type your reply here..."></textarea>
 
-      <!-- Consent Section -->
-      <div class="consent-section">
-        <label for="consentCheckbox">
-          <input type="checkbox" id="consentCheckbox" name="consent" />
-          I agree to the <a href="/privacy-policy.html" target="_blank">Privacy Policy</a> and consent to the storage and processing of my data.
-        </label>
-      </div>
-
       <!-- GDPR Consent Section -->
       <div class="consent-section">
         <label for="gdprConsentCheckbox">
@@ -325,13 +317,6 @@
       if (bbcReply.length === 0) {
         isValid = false;
         errors.push("Complaint Response cannot be empty.");
-      }
-
-      // Consent validation
-      const consentChecked = form.consent.checked;
-      if (!consentChecked) {
-        isValid = false;
-        errors.push("You must agree to the Privacy Policy to submit your reply.");
       }
 
       // GDPR Consent validation
@@ -521,14 +506,13 @@
             replyForm.bbcReply.value = '';
             replyForm.interceptId.value = '';
             
-            // Uncheck the consent checkboxes
-            replyForm.consent.checked = false;
+            // Uncheck the GDPR consent checkbox
             replyForm.gdprConsent.checked = false;
             
-            // Disable the submit button again until consents are given
+            // Disable the submit button again until consent is given
             submitReplyBtn.disabled = true;
             
-            // Hide the consent sections if desired
+            // Hide the consent section if desired
             const consentSections = document.querySelectorAll('.consent-section');
             consentSections.forEach(section => {
               section.style.display = 'block';
@@ -597,20 +581,18 @@
       }
     });
 
-    // Handle Consent Checkboxes
-    const consentCheckbox = document.getElementById('consentCheckbox');
+    // Handle GDPR Consent Checkbox
     const gdprConsentCheckbox = document.getElementById('gdprConsentCheckbox');
     const submitReplyBtn = document.getElementById('submitReplyBtn');
 
     function updateSubmitButtonState() {
-      if (consentCheckbox.checked && gdprConsentCheckbox.checked) {
+      if (gdprConsentCheckbox.checked) {
         submitReplyBtn.disabled = false;
       } else {
         submitReplyBtn.disabled = true;
       }
     }
 
-    consentCheckbox.addEventListener('change', updateSubmitButtonState);
     gdprConsentCheckbox.addEventListener('change', updateSubmitButtonState);
   </script>
 </body>
