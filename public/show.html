@@ -120,7 +120,7 @@
           required
           pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
           title="Please enter a valid TACC Record ID (UUID v4)."
-          onblur="handleOnBlur()"
+          onblur="handleBlur()"
         />
         <button type="submit">View Complaint</button>
         <button
@@ -204,6 +204,17 @@
           displayError("Error fetching replies.");
         }
       }
+      function handleBlur() {
+        const uuid = document.getElementById("uuidInput").value.trim();
+        if (isValidUUID(uuid)) {
+          displayLoading(true);
+          fetchComplaintDetails(uuid).finally(() => {
+            displayLoading(false);
+          });
+        } else {
+          displayError("Invalid UUID.");
+        }
+      }
       function submitReply() {
         const uuid = document.getElementById("uuidInput").value.trim();
         if (isValidUUID(uuid)) {
@@ -212,42 +223,6 @@
           displayError("Invalid UUID.");
         }
       }
-      function handleOnBlur() {
-        const uuid = document.getElementById("uuidInput").value.trim();
-        if (isValidUUID(uuid)) {
-          displayLoading(true);
-          fetchComplaintDetails(uuid).finally(() => displayLoading(false));
-        }
-      }
-      window.onload = function () {
-        const uuid = getQueryParam("uuid");
-        const uuidInput = document.getElementById("uuidInput");
-
-        if (uuid && isValidUUID(uuid)) {
-          uuidInput.value = uuid;
-          displayLoading(true); // Show loading spinner
-          fetchComplaintDetails(uuid)
-            .then(() => {
-              document.getElementById("replyButtonSection").style.display =
-                "block";
-            })
-            .finally(() => {
-              displayLoading(false); // Hide loading spinner
-            });
-        }
-      };
-
-      document
-        .getElementById("uuidForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const uuid = document.getElementById("uuidInput").value.trim();
-          if (isValidUUID(uuid)) {
-            window.location.href = `show.html?uuid=${uuid}`;
-          } else {
-            displayError("Invalid UUID.");
-          }
-        });
     </script>
   </body>
 </html>
