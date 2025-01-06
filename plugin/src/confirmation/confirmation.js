@@ -102,15 +102,36 @@ function handleSuccess(complaintId) {
   cancelBtn.style.backgroundColor = "#4caf50";
 
   const dataContentEl = document.getElementById("dataContent");
+  dataContentEl.innerHTML = ''; // Clear existing content
+
   if (complaintId) {
-    dataContentEl.innerHTML = `
-      <span id="success"><strong>Success!</strong> Your data has been sent successfully.</span><br>
-      Your complaint number is: <strong>${complaintId}</strong><br><br>
-    `;
+    const successSpan = document.createElement('span');
+    successSpan.id = 'success';
+
+    const strongSuccess = document.createElement('strong');
+    strongSuccess.textContent = 'Success!';
+    successSpan.appendChild(strongSuccess);
+    successSpan.appendChild(document.createTextNode(' Your data has been sent successfully.'));
+
+    dataContentEl.appendChild(successSpan);
+    dataContentEl.appendChild(document.createElement('br'));
+
+    const complaintText = document.createElement('div');
+    const complaintStrong = document.createElement('strong');
+    complaintStrong.textContent = 'Your complaint number is: ';
+    complaintText.appendChild(complaintStrong);
+    complaintText.appendChild(document.createTextNode(complaintId));
+
+    dataContentEl.appendChild(complaintText);
+    dataContentEl.appendChild(document.createElement('br'));
+    dataContentEl.appendChild(document.createElement('br'));
   } else {
-    dataContentEl.innerHTML = `
-      <strong>Success!</strong> Your data has been sent successfully.<br><br>
-    `;
+    const successStrong = document.createElement('strong');
+    successStrong.textContent = 'Success!';
+    dataContentEl.appendChild(successStrong);
+    dataContentEl.appendChild(document.createTextNode(' Your data has been sent successfully.'));
+    dataContentEl.appendChild(document.createElement('br'));
+    dataContentEl.appendChild(document.createElement('br'));
   }
 
   // Optionally, store a flag in localStorage to prevent future submissions
