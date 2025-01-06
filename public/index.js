@@ -54,6 +54,8 @@ function validateForm(form) {
 async function fetchComplaintDetails(uuid) {
     const complaintDetails = document.getElementById("complaintDetails");
     const complaintTitle = document.getElementById("complaintTitle");
+    const sourceurl = document.getElementById("sourceurl");
+    const programme = document.getElementById("programme");
     const complaintDescription = document.getElementById(
         "complaintDescription"
     );
@@ -70,6 +72,9 @@ async function fetchComplaintDetails(uuid) {
         const complaintData = await complaintResponse.json();
         complaintTitle.textContent =
             complaintData.complaint.title || "No Title";
+        sourceurl.textContent = complaintData.complaint.sourceurl ;
+        programme.textContent = complaintData.complaint.programme ;
+
         complaintDescription.textContent =
             complaintData.complaint.description || "No Description";
         complaintDetails.style.display = "block";
