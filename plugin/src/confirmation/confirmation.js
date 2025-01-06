@@ -105,7 +105,7 @@ function handleSuccess(complaintId) {
   if (complaintId) {
     dataContentEl.innerHTML = `
       <span id="success"><strong>Success!</strong> Your data has been sent successfully.</span><br>
-      Your complaint number is: <strong>${complaintId}</strong>.<br><br>
+      Your complaint number is: <strong>${complaintId}</strong><br><br>
     `;
   } else {
     dataContentEl.innerHTML = `

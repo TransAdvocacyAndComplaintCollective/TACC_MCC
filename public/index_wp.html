@@ -1,0 +1,80 @@
+<h1>Media Complaint Response Form</h1>
+<div class="form-container">
+  <form id="replyForm" novalidate>
+    <label for="interceptId">TACC Record ID:</label>
+    <input
+            type="text"
+            id="interceptId"
+            name="interceptId"
+            required
+            pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            title="Please enter a valid TACC Record ID"
+    />
+
+    <div
+            id="complaintDetails"
+            class="complaint-details"
+            style="display: none"
+    >
+      <h4 style="margin-bottom: 5px">Complaint Details</h4>
+      <div class="card" style="margin-bottom:15px; background-color: #d3f8d3;">
+        <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
+        <p><strong>Description:</strong></p>
+        <p id="complaintDescription"></p>
+      </div>
+    </div>
+
+    <div id="repliesSection" class="replies-section" style="display: none">
+      <h4 style="margin-bottom: 5px">Existing Replies</h4>
+      <div id="repliesList">
+        <!-- Existing replies will be appended here -->
+      </div>
+    </div>
+
+    <label for="bbcRef">BBC Reference Number:</label>
+    <input
+            type="text"
+            id="bbcRef"
+            name="bbcRef"
+            pattern="^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$"
+            title="BBC Reference Number should follow the format AAA-1234567-ABC123"
+    />
+
+    <label for="bbcReply">Complaint Response:</label>
+    <textarea
+            id="bbcReply"
+            name="bbcReply"
+            required
+            placeholder="Type your reply here..."
+    ></textarea>
+
+    <!-- GDPR Consent Section -->
+    <div class="consent-section">
+      <label for="gdprConsentCheckbox">
+        <input
+                type="checkbox"
+                id="gdprConsentCheckbox"
+                name="gdprConsent"
+        />
+        I acknowledge that I have read and understand the
+        <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
+      </label>
+    </div>
+
+    <button type="submit" id="submitReplyBtn" disabled>Submit Reply</button>
+  </form>
+
+  <div id="messageContainer"></div>
+</div>
+
+<!-- Custom Modal -->
+<div class="custom-modal-overlay" id="customModal">
+  <div class="custom-modal-content">
+    <p>Reply submitted successfully!</p>
+    <p>Do you want to send another reply?</p>
+    <div class="custom-modal-buttons">
+      <button id="modalYes" class="yes-button">Yes</button>
+      <button id="modalNo" class="no-button">No</button>
+    </div>
+  </div>
+</div>
