@@ -29,6 +29,13 @@ browser.runtime.onInstalled.addListener((details) => {
 // Listen for POST requests from BBC
 browser.webRequest.onBeforeRequest.addListener(
   async (details) => {
+    const result = await browser.storage.local.get('privacyPolicyAccepted');
+    const privacyPolicyAccepted = result.privacyPolicyAccepted;
+    if (!privacyPolicyAccepted) {
+      return {};
+    }
+
+
     if (
       details.method === "POST" &&
       details.originUrl &&
