@@ -175,6 +175,7 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
         transmissiontime: complaintData.transmissiontime || null,
         title: complaintData.title || null,
         timestamp: complaintData.timestamp || null,
+        sourceurl: complaintData.sourceurl || null,
       },
     };
 
