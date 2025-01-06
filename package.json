@@ -13,7 +13,7 @@
     "uuid": "^11.0.3"
   },
   "name": "bbc_complaint_interceptor",
-  "version": "1.0.0",
+  "version": "0.1.32",
   "main": "background.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
