@@ -146,7 +146,9 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
       transmissiondate,
       transmissiontime,
       title,
-      timestamp
+      timestamp,
+      sourceurl,
+      
     FROM intercepted_data 
     WHERE id = ? 
     LIMIT 1;
