@@ -175,10 +175,12 @@ function getSelectedData() {
 // Function to send data to your server
 async function sendDataToServer(selectedData) {
   try {
+    const result = await browser.storage.local.get('privacyPolicyAccepted');
+    const privacyPolicyAccepted = result.privacyPolicyAccepted;
     const response = await fetch("https://www.tacc.org.uk/api/intercept", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ originUrl: selectedData.originUrl, interceptedData: selectedData }),
+      body: JSON.stringify({ originUrl: selectedData.originUrl, interceptedData: selectedData , privacyPolicyAccepted: privacyPolicyAccepted }),
     });
 
     if (!response.ok) throw new Error("Failed to send data. Please try again.");

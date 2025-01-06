@@ -212,7 +212,11 @@ app.use("/api/replay", express.static("public"));
 
 // POST request to intercept data
 app.post("/api/intercept", (req, res) => {
-  const { originUrl, interceptedData } = req.body;
+  const { originUrl, interceptedData, privacyPolicyAccepted } = req.body;
+  if (!privacyPolicyAccepted  || privacyPolicyAccepted !== true) {
+    return res.status(400).json({ error: "Privacy policy must be accepted." });
+  }
+  console.log("Privacy policy accepted",privacyPolicyAccepted);
 
   if (!originUrl || !interceptedData) {
     console.error("Invalid request body:", req.body);
