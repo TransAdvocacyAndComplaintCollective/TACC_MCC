@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // ID Cell
         const idCell = document.createElement("td");
         const idLink = document.createElement("a");
-        idLink.href = "https://tacc.org.uk/api/replay/show.html?uuid=" + complaint.id;
+        idLink.href = "https://tacc.org.uk/media-complaints-response-form/?uuid=" + complaint.id;
         idLink.textContent = complaint.id || "N/A";
         idLink.target = "_blank";
         idCell.appendChild(idLink);
