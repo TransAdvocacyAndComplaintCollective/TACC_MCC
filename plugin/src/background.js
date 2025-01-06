@@ -32,7 +32,9 @@ browser.webRequest.onBeforeRequest.addListener(
     if (!privacyPolicyAccepted) {
       return {};
     }
-
+    if ("https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage" !== details.url) {
+      return {};
+    }
 
     if (
       details.method === "POST" &&

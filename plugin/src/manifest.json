@@ -10,7 +10,8 @@
     "tabs",
     "storage",
     "notifications",
-    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage"
+    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage",
+    "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*"
   ],
   "background": {
     "scripts": ["background.js"]
@@ -27,6 +28,8 @@
     "48": "icons/image-48.png"
   },
   "web_accessible_resources": [
+    "init/init.html",
+    "init/init.js",
     "confirmation/confirmation.html",
     "confirmation/confirmation.js",
     "confirmation/confirmation.css",
