@@ -10,9 +10,7 @@
     "tabs",
     "storage",
     "notifications",
-    "https://www.bbc.co.uk/*",
-    "https://bbc.co.uk/*",
-    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/*"
+    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage"
   ],
   "background": {
     "scripts": ["background.js"]
