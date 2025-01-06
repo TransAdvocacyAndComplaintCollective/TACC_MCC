@@ -3,8 +3,6 @@ if (typeof browser === 'undefined') {
 }
 
 let pendingData = null;
-let pendingOriginUrl = null;
-let sendStatus = 'Idle'; // Track the current status
 
 // Function to open the init page on initial launch
 function openInitPage() {
@@ -101,87 +99,87 @@ browser.webRequest.onBeforeRequest.addListener(
   ["requestBody"]
 );
 
-// Listen for messages from confirmation page
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'confirmSend' && pendingData && pendingOriginUrl) {
-    // User confirmed to send data
-    sendStatus = 'Sending...';
-    sendResponse({ status: 'Sending...' });
-    sendToTACC(pendingData, pendingOriginUrl)
-      .then(() => {
-        sendStatus = 'Data sent successfully';
-        console.log("Data successfully sent to TACC");
-      })
-      .catch((error) => {
-        sendStatus = 'Failed to send data';
-        console.error("Failed to send data:", error);
-      })
-      .finally(() => {
-        pendingData = null;
-        pendingOriginUrl = null;
-      });
-    return true; // Indicates that the response is asynchronous
-  } else if (message.action === 'cancelSend') {
-    // User canceled
-    console.log("User canceled sending data to TACC.");
-    sendStatus = 'Idle';
-    pendingData = null;
-    pendingOriginUrl = null;
-  } else if (message.action === 'getSendStatus') {
-    // Handle status requests
-    sendResponse({ status: sendStatus });
-  }
-});
+// // Listen for messages from confirmation page
+// browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (message.action === 'confirmSend' && pendingData && pendingOriginUrl) {
+//     // User confirmed to send data
+//     sendStatus = 'Sending...';
+//     sendResponse({ status: 'Sending...' });
+//     sendToTACC(pendingData, pendingOriginUrl)
+//       .then(() => {
+//         sendStatus = 'Data sent successfully';
+//         console.log("Data successfully sent to TACC");
+//       })
+//       .catch((error) => {
+//         sendStatus = 'Failed to send data';
+//         console.error("Failed to send data:", error);
+//       })
+//       .finally(() => {
+//         pendingData = null;
+//         pendingOriginUrl = null;
+//       });
+//     return true; // Indicates that the response is asynchronous
+//   } else if (message.action === 'cancelSend') {
+//     // User canceled
+//     console.log("User canceled sending data to TACC.");
+//     sendStatus = 'Idle';
+//     pendingData = null;
+//     pendingOriginUrl = null;
+//   } else if (message.action === 'getSendStatus') {
+//     // Handle status requests
+//     sendResponse({ status: sendStatus });
+//   }
+// });
 
-// Function to send the intercepted data to TACC
-async function sendToTACC(data, originUrl) {
-  try {
-    await fetch("https://tacc.org.uk/api/intercept", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        originUrl: originUrl,
-        interceptedData: data
-      })
-    });
-    sendStatus = 'Data sent successfully';
-  } catch (error) {
-    sendStatus = 'Failed to send data';
-    throw error; // Rethrow to be caught in the caller
-  }
-}
+// // Function to send the intercepted data to TACC
+// async function sendToTACC(data, originUrl) {
+//   try {
+//     await fetch("https://tacc.org.uk/api/intercept", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json"
+//       },
+//       body: JSON.stringify({
+//         originUrl: originUrl,
+//         interceptedData: data
+//       })
+//     });
+//     sendStatus = 'Data sent successfully';
+//   } catch (error) {
+//     sendStatus = 'Failed to send data';
+//     throw error; // Rethrow to be caught in the caller
+//   }
+// }
 
-// Function to check for problematic stories
-async function checkForProblematicStories() {
-  console.log("Checking for problematic stories...");
-  try {
-    const response = await fetch("endpoint.trans-matters.org.uk/problematic");
-    if (response.ok) {
-      const data = await response.json();
-      if (data.length > 0) {
-        data.forEach((story) => {
-          browser.notifications.create({
-            type: "basic",
-            iconUrl: "icons/icon48.png",
-            title: "Problematic Story Alert",
-            message: `Title: ${story.title}\nClick to view more.`
-          }, (notificationId) => {
-            // Attach click handler for notification
-            browser.notifications.onClicked.addListener((id) => {
-              if (id === notificationId) {
-                browser.tabs.create({ url: story.url });
-              }
-            });
-          });
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Failed to check for problematic stories:", error);
-  }
-}
+// // Function to check for problematic stories
+// async function checkForProblematicStories() {
+//   console.log("Checking for problematic stories...");
+//   try {
+//     const response = await fetch("endpoint.trans-matters.org.uk/problematic");
+//     if (response.ok) {
+//       const data = await response.json();
+//       if (data.length > 0) {
+//         data.forEach((story) => {
+//           browser.notifications.create({
+//             type: "basic",
+//             iconUrl: "icons/icon48.png",
+//             title: "Problematic Story Alert",
+//             message: `Title: ${story.title}\nClick to view more.`
+//           }, (notificationId) => {
+//             // Attach click handler for notification
+//             browser.notifications.onClicked.addListener((id) => {
+//               if (id === notificationId) {
+//                 browser.tabs.create({ url: story.url });
+//               }
+//             });
+//           });
+//         });
+//       }
+//     }
+//   } catch (error) {
+//     console.error("Failed to check for problematic stories:", error);
+//   }
+// }
 
-// Set intervals for checking problematic stories
-setInterval(checkForProblematicStories, 60000); // Check every 1 minute
+// // Set intervals for checking problematic stories
+// setInterval(checkForProblematicStories, 60000); // Check every 1 minute
