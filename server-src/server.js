@@ -132,11 +132,9 @@ createTables();
 
 
 // GET /api/companies/:uuid
-// GET /api/complaint/:uuid
-app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
+app.get("/api/complaint/:uuid", validateUUID, async (req, res) => {
   const { uuid } = req.params;
 
-  // Query to fetch the complaint details
   const query = `
     SELECT 
       id,
@@ -147,30 +145,24 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
       transmissiontime,
       title,
       timestamp,
-      sourceurl,
-      
+      sourceurl
     FROM intercepted_data 
     WHERE id = ? 
     LIMIT 1;
   `;
 
-  db.query(query, [uuid], (err, results) => {
-    if (err) {
-      console.error("Database fetch error:", err.message);
-      return res.status(500).json({ error: "Failed to fetch complaint data." });
-    }
+  try {
+    const [results] = await db.promise().query(query, [uuid]);
 
     if (results.length === 0) {
-      // Handle case where no complaint is found for the given UUID
       return res.status(404).json({ error: "No data found for the provided UUID." });
     }
 
-    // Mask sensitive data (e.g., URLs or personal identifiers)
     const complaintData = results[0];
     const response = {
       complaint: {
         id: complaintData.id,
-        originUrl: complaintData.originUrl ? "[REDACTED]" : null, // Mask origin URL
+        originUrl: complaintData.originUrl ? "[REDACTED]" : null,
         description: complaintData.description || null,
         programme: complaintData.programme || null,
         transmissiondate: complaintData.transmissiondate || null,
@@ -181,13 +173,14 @@ app.get("/api/complaint/:uuid", validateUUID, (req, res) => {
       },
     };
 
-    // Log data access for auditing purposes
     console.log(`Complaint data accessed for ID: ${uuid}`);
-
-    // Respond with the formatted complaint data
     res.status(200).json(response);
-  });
+  } catch (err) {
+    console.error("Database fetch error:", err.message);
+    res.status(500).json({ error: "Failed to fetch complaint data." });
+  }
 });
+
 
 
 // GET /api/replies/:uuid
