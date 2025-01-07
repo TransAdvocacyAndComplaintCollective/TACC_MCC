@@ -1,3 +1,5 @@
+const e = require("cors");
+
 // Function to get query parameters
 function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -72,8 +74,22 @@ async function fetchComplaintDetails(uuid) {
         const complaintData = await complaintResponse.json();
         complaintTitle.textContent =
             complaintData.complaint.title || "No Title";
-        sourceurl.textContent = complaintData.complaint.sourceurl ;
-        programme.textContent = complaintData.complaint.programme ;
+        if (complaintData.complaint.sourceurl) {
+            sourceurl.style.display = "block";
+            sourceurl.textContent = "url: "+complaintData.complaint.sourceurl;
+        }
+        else{
+            sourceurl.style.display = "none";
+            sourceurl.textContent = "";
+        }
+        if (complaintData.complaint.programme) {
+            programme.style.display = "block";
+            programme.textContent = "programme: "+complaintData.complaint.programme;
+        }
+        else{
+            programme.style.display = "none";
+            programme.textContent = "";
+        }
 
         complaintDescription.textContent =
             complaintData.complaint.description || "No Description";
@@ -296,9 +312,8 @@ document
                 // Display server-side validation errors
                 const errorMessage = document.createElement("div");
                 errorMessage.className = "error-message";
-                errorMessage.textContent = `Error: ${
-                    result.error || "An error occurred while submitting your reply."
-                }`;
+                errorMessage.textContent = `Error: ${result.error || "An error occurred while submitting your reply."
+                    }`;
                 messageContainer.appendChild(errorMessage);
             }
         } catch (error) {
