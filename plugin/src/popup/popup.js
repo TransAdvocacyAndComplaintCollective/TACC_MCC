@@ -200,9 +200,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // -----------------------------
   // Part 3: Show Easter Egg
   // -----------------------------
-  if (versionElement) {
-    showEasterEgg(versionElement);
-  }
+  // if (versionElement) {
+  //   showEasterEgg(versionElement);
+  // }
 });
 
 // // Easter Egg function fixed
