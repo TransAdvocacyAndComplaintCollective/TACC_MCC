@@ -81,6 +81,10 @@ const fieldDetails = {
   },
 };
 
+if (typeof browser === "undefined") {
+  var browser = chrome;
+}
+
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const originUrl = urlParams.get("originUrl");
