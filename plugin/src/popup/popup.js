@@ -22,13 +22,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     privacyPolicyDiv.style.border = "1px solid #f5c2c7";
     privacyPolicyDiv.style.color = "#842029";
     privacyPolicyDiv.style.padding = "10px";
-    privacyPolicyDiv.style.marginBottom = "15px";
+    privacyPolicyDiv.style.marginTop = "30px";
+    privacyPolicyDiv.style.marginBottom = "30px";
     privacyPolicyDiv.style.textAlign = "center";
+    privacyPolicyDiv.style.fontSize = "16px";
 
     const privacyPolicyLink = document.createElement("a");
     privacyPolicyLink.href = "/init/init.html";
     privacyPolicyLink.target = "_blank";
-    privacyPolicyLink.textContent = "Please review and accept the Privacy Policy to use this extension.";
+    // privacyPolicyLink.textContent = "Click here to review and accept the Privacy Policy to use this extension.";
+    privacyPolicyLink.textContent = "To enable this extension please CLICK HERE to accept our Privacy Policy.";
 
     privacyPolicyDiv.appendChild(privacyPolicyLink);
     container.prepend(privacyPolicyDiv);
