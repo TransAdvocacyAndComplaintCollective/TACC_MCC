@@ -205,38 +205,38 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Easter Egg function fixed
-function showEasterEgg(versionElement) {
-  const userAgent = navigator.userAgent.toUpperCase();
-  // if (!userAgent.includes('MAC')) {
-  //   return;
-  // }
-
-  const randomNumber = Math.floor(Math.random() * 4) + 1;
-  if (randomNumber !== 3) {
-    return;
-  }
-
-  const date = new Date();
-  // Note: JavaScript months are 0-based (0 = January, 1 = February, etc.)
-  if (date.getMonth() === 2 && date.getDate() === 31) { // March 31
-    versionElement.textContent = "Hoping having a good Transgender Day of Visibility!";
-    return;
-  }
-
-  const randomNumber2 = Math.floor(Math.random() * 10) + 1;
-  const messages = {
-    1: "You're a star!",
-    2: "You're doing great!",
-    3: "You're amazing!",
-    4: "Lucy is the Best!",
-    5: "You're a legend!",
-    6: "You're a hero!",
-    7: "Life, the universe, and everything!",
-    8: "You're a superstar!",
-    9: "Emi is the Best!",
-    10: "You're a hero!"
-  };
-
-  versionElement.textContent = messages[randomNumber2] || "Keep up the great work!";
-}
+// // Easter Egg function fixed
+// function showEasterEgg(versionElement) {
+//   const userAgent = navigator.userAgent.toUpperCase();
+//   // if (!userAgent.includes('MAC')) {
+//   //   return;
+//   // }
+//
+//   const randomNumber = Math.floor(Math.random() * 4) + 1;
+//   if (randomNumber !== 3) {
+//     return;
+//   }
+//
+//   const date = new Date();
+//   // Note: JavaScript months are 0-based (0 = January, 1 = February, etc.)
+//   if (date.getMonth() === 2 && date.getDate() === 31) { // March 31
+//     versionElement.textContent = "Hoping having a good Transgender Day of Visibility!";
+//     return;
+//   }
+//
+//   const randomNumber2 = Math.floor(Math.random() * 10) + 1;
+//   const messages = {
+//     1: "You're a star!",
+//     2: "You're doing great!",
+//     3: "You're amazing!",
+//     4: "Lucy is the Best!",
+//     5: "You're a legend!",
+//     6: "You're a hero!",
+//     7: "Life, the universe, and everything!",
+//     8: "You're a superstar!",
+//     9: "Emi is the Best!",
+//     10: "You're a hero!"
+//   };
+//
+//   versionElement.textContent = messages[randomNumber2] || "Keep up the great work!";
+// }
