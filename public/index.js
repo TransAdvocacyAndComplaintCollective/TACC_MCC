@@ -1,5 +1,3 @@
-const e = require("cors");
-
 // Function to get query parameters
 function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
