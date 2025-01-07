@@ -171,12 +171,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Easter Egg function fixed
 function showEasterEgg(versionElement) {
   const userAgent = navigator.userAgent.toUpperCase();
-  if (!userAgent.includes('MAC')) {
-    return;
-  }
+  // if (!userAgent.includes('MAC')) {
+  //   return;
+  // }
 
-  const randomNumber = Math.floor(Math.random() * 100) + 1;
-  if (randomNumber !== 42) {
+  const randomNumber = Math.floor(Math.random() * 4) + 1;
+  if (randomNumber !== 3) {
     return;
   }
 
@@ -192,12 +192,12 @@ function showEasterEgg(versionElement) {
     1: "You're a star!",
     2: "You're doing great!",
     3: "You're amazing!",
-    4: "Lucy is the best!",
+    4: "Lucy is the Best!",
     5: "You're a legend!",
     6: "You're a hero!",
     7: "Life, the universe, and everything!",
     8: "You're a superstar!",
-    9: "Lucy is the Best!",
+    9: "Emi is the Best!",
     10: "You're a hero!"
   };
 
