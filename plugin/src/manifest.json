@@ -12,12 +12,14 @@
     "notifications",
     "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage",
     "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*"
+    
   ],
   "background": {
     "scripts": ["background.js"]
   },
   "browser_action": {
     "default_popup": "popup/popup.html",
+    "default_area": "navbar",
     "default_icon": {
       "16": "icons/image-16.png",
       "48": "icons/image-48.png"
@@ -37,7 +39,6 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "info@tacc.org.uk"
     }
   }
 }
