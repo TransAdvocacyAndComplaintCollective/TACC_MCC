@@ -2,6 +2,43 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Initialize elements
+
+  const container = document.getElementById("container");
+
+  // Check if privacy policy is accepted
+  let privacyPolicyAccepted = false;
+  try {
+    const result = await browser.storage.local.get("privacyPolicyAccepted");
+    privacyPolicyAccepted = result.privacyPolicyAccepted || false;
+  } catch (error) {
+    console.error("Error checking privacy policy status:", error);
+  }
+
+  if (!privacyPolicyAccepted) {
+    // Create a link to the privacy policy
+    const privacyPolicyDiv = document.createElement("div");
+    privacyPolicyDiv.id = "privacy-policy-notice";
+    privacyPolicyDiv.style.backgroundColor = "#f8d7da";
+    privacyPolicyDiv.style.border = "1px solid #f5c2c7";
+    privacyPolicyDiv.style.color = "#842029";
+    privacyPolicyDiv.style.padding = "10px";
+    privacyPolicyDiv.style.marginTop = "30px";
+    privacyPolicyDiv.style.marginBottom = "30px";
+    privacyPolicyDiv.style.textAlign = "center";
+    privacyPolicyDiv.style.fontSize = "16px";
+
+    const privacyPolicyLink = document.createElement("a");
+    privacyPolicyLink.href = "/init/init.html";
+    privacyPolicyLink.target = "_blank";
+    // privacyPolicyLink.textContent = "Click here to review and accept the Privacy Policy to use this extension.";
+    privacyPolicyLink.textContent = "To enable this extension please CLICK HERE to accept our Privacy Policy.";
+
+    privacyPolicyDiv.appendChild(privacyPolicyLink);
+    container.prepend(privacyPolicyDiv);
+
+    // Stop the rest of the script from executing until the privacy policy is accepted
+    return;
+  }
   const helpLink = document.getElementById("help-link");
   const sendStatus = document.getElementById("send-status");
   const checkStoriesBtn = document.getElementById("check-stories-btn");
@@ -163,43 +200,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   // -----------------------------
   // Part 3: Show Easter Egg
   // -----------------------------
-  if (versionElement) {
-    showEasterEgg(versionElement);
-  }
+  // if (versionElement) {
+  //   showEasterEgg(versionElement);
+  // }
 });
 
-// Easter Egg function fixed
-function showEasterEgg(versionElement) {
-  const userAgent = navigator.userAgent.toUpperCase();
-  if (!userAgent.includes('MAC')) {
-    return;
-  }
-
-  const randomNumber = Math.floor(Math.random() * 100) + 1;
-  if (randomNumber !== 42) {
-    return;
-  }
-
-  const date = new Date();
-  // Note: JavaScript months are 0-based (0 = January, 1 = February, etc.)
-  if (date.getMonth() === 2 && date.getDate() === 31) { // March 31
-    versionElement.textContent = "Hoping having a good Transgender Day of Visibility!";
-    return;
-  }
-
-  const randomNumber2 = Math.floor(Math.random() * 10) + 1;
-  const messages = {
-    1: "You're a star!",
-    2: "You're doing great!",
-    3: "You're amazing!",
-    4: "Lucy is the best!",
-    5: "You're a legend!",
-    6: "You're a hero!",
-    7: "Life, the universe, and everything!",
-    8: "You're a superstar!",
-    9: "Lucy is the Best!",
-    10: "You're a hero!"
-  };
-
-  versionElement.textContent = messages[randomNumber2] || "Keep up the great work!";
-}
+// // Easter Egg function fixed
+// function showEasterEgg(versionElement) {
+//   const userAgent = navigator.userAgent.toUpperCase();
+//   // if (!userAgent.includes('MAC')) {
+//   //   return;
+//   // }
+//
+//   const randomNumber = Math.floor(Math.random() * 4) + 1;
+//   if (randomNumber !== 3) {
+//     return;
+//   }
+//
+//   const date = new Date();
+//   // Note: JavaScript months are 0-based (0 = January, 1 = February, etc.)
+//   if (date.getMonth() === 2 && date.getDate() === 31) { // March 31
+//     versionElement.textContent = "Hoping having a good Transgender Day of Visibility!";
+//     return;
+//   }
+//
+//   const randomNumber2 = Math.floor(Math.random() * 10) + 1;
+//   const messages = {
+//     1: "You're a star!",
+//     2: "You're doing great!",
+//     3: "You're amazing!",
+//     4: "Lucy is the Best!",
+//     5: "You're a legend!",
+//     6: "You're a hero!",
+//     7: "Life, the universe, and everything!",
+//     8: "You're a superstar!",
+//     9: "Emi is the Best!",
+//     10: "You're a hero!"
+//   };
+//
+//   versionElement.textContent = messages[randomNumber2] || "Keep up the great work!";
+// }

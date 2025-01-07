@@ -54,6 +54,12 @@ function validateForm(form) {
 async function fetchComplaintDetails(uuid) {
     const complaintDetails = document.getElementById("complaintDetails");
     const complaintTitle = document.getElementById("complaintTitle");
+    const sourceurl = document.getElementById("sourceurl");
+    const programme = document.getElementById("programme");
+    const sourceurl_item = document.getElementById("sourceurl_item");
+    const programme_item = document.getElementById("programme_item");
+    
+
     const complaintDescription = document.getElementById(
         "complaintDescription"
     );
@@ -70,6 +76,23 @@ async function fetchComplaintDetails(uuid) {
         const complaintData = await complaintResponse.json();
         complaintTitle.textContent =
             complaintData.complaint.title || "No Title";
+        if (complaintData.complaint.sourceurl) {
+            sourceurl_item.style.display = "block";
+            sourceurl.textContent = complaintData.complaint.sourceurl;
+        }
+        else{
+            sourceurl_item.style.display = "none";
+            sourceurl.textContent = "";
+        }
+        if (complaintData.complaint.programme) {
+            programme_item.style.display = "block";
+            programme.textContent = complaintData.complaint.programme;
+        }
+        else{
+            programme_item.style.display = "none";
+            programme.textContent = "";
+        }
+
         complaintDescription.textContent =
             complaintData.complaint.description || "No Description";
         complaintDetails.style.display = "block";
@@ -291,9 +314,8 @@ document
                 // Display server-side validation errors
                 const errorMessage = document.createElement("div");
                 errorMessage.className = "error-message";
-                errorMessage.textContent = `Error: ${
-                    result.error || "An error occurred while submitting your reply."
-                }`;
+                errorMessage.textContent = `Error: ${result.error || "An error occurred while submitting your reply."
+                    }`;
                 messageContainer.appendChild(errorMessage);
             }
         } catch (error) {
