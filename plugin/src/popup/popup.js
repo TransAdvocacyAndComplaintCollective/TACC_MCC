@@ -2,6 +2,40 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Initialize elements
+
+  const container = document.getElementById("container");
+
+  // Check if privacy policy is accepted
+  let privacyPolicyAccepted = false;
+  try {
+    const result = await browser.storage.local.get("privacyPolicyAccepted");
+    privacyPolicyAccepted = result.privacyPolicyAccepted || false;
+  } catch (error) {
+    console.error("Error checking privacy policy status:", error);
+  }
+
+  if (!privacyPolicyAccepted) {
+    // Create a link to the privacy policy
+    const privacyPolicyDiv = document.createElement("div");
+    privacyPolicyDiv.id = "privacy-policy-notice";
+    privacyPolicyDiv.style.backgroundColor = "#f8d7da";
+    privacyPolicyDiv.style.border = "1px solid #f5c2c7";
+    privacyPolicyDiv.style.color = "#842029";
+    privacyPolicyDiv.style.padding = "10px";
+    privacyPolicyDiv.style.marginBottom = "15px";
+    privacyPolicyDiv.style.textAlign = "center";
+
+    const privacyPolicyLink = document.createElement("a");
+    privacyPolicyLink.href = "/init/init.html";
+    privacyPolicyLink.target = "_blank";
+    privacyPolicyLink.textContent = "Please review and accept the Privacy Policy to use this extension.";
+
+    privacyPolicyDiv.appendChild(privacyPolicyLink);
+    container.prepend(privacyPolicyDiv);
+
+    // Stop the rest of the script from executing until the privacy policy is accepted
+    return;
+  }
   const helpLink = document.getElementById("help-link");
   const sendStatus = document.getElementById("send-status");
   const checkStoriesBtn = document.getElementById("check-stories-btn");
