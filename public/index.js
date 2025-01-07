@@ -58,6 +58,10 @@ async function fetchComplaintDetails(uuid) {
     const complaintTitle = document.getElementById("complaintTitle");
     const sourceurl = document.getElementById("sourceurl");
     const programme = document.getElementById("programme");
+    const sourceurl_item = document.getElementById("sourceurl_item");
+    const programme_item = document.getElementById("programme_item");
+    
+
     const complaintDescription = document.getElementById(
         "complaintDescription"
     );
@@ -75,19 +79,19 @@ async function fetchComplaintDetails(uuid) {
         complaintTitle.textContent =
             complaintData.complaint.title || "No Title";
         if (complaintData.complaint.sourceurl) {
-            sourceurl.style.display = "block";
-            sourceurl.textContent = "url: "+complaintData.complaint.sourceurl;
+            sourceurl_item.style.display = "block";
+            sourceurl.textContent = complaintData.complaint.sourceurl;
         }
         else{
-            sourceurl.style.display = "none";
+            sourceurl_item.style.display = "none";
             sourceurl.textContent = "";
         }
         if (complaintData.complaint.programme) {
-            programme.style.display = "block";
-            programme.textContent = "programme: "+complaintData.complaint.programme;
+            programme_item.style.display = "block";
+            programme.textContent = complaintData.complaint.programme;
         }
         else{
-            programme.style.display = "none";
+            programme_item.style.display = "none";
             programme.textContent = "";
         }
 
