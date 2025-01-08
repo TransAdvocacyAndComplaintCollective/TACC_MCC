@@ -117,6 +117,7 @@ function handleSuccess(complaintId) {
     dataContentEl.appendChild(document.createElement('br'));
 
     const complaintText = document.createElement('div');
+    complaintText.id = 'complaintText';
     const complaintStrong = document.createElement('strong');
     complaintStrong.textContent = 'Your complaint number is: ';
     complaintText.appendChild(complaintStrong);
