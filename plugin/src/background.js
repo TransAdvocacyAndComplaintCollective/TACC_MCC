@@ -1,7 +1,7 @@
 // background.js
 
 // 1) Mapping the table row labels to your chosen internal field names
-const mapping_to_formDAta = {  
+const mapping_to_formData = {  
   // Existing mappings (examples—rename the right side fields as you see fit)
   "What is your complaint about?": "generalissue1",
   "Are you contacting us about a previous complaint?": "previous_complaint",
@@ -79,7 +79,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // 4) Map the table data keys to your form fields
     for (const key in allReviewTableData) {
-      const mappedField = mapping_to_formDAta[key];
+      const mappedField = mapping_to_formData[key];
       if (mappedField) {
         // If we have a known mapping, place it under that field name
         parsedData["formData"][mappedField] = allReviewTableData[key];
