@@ -244,6 +244,7 @@ let parsedformData = {};
 if (originUrl && data) {
   try {
     parsedData = JSON.parse(data);
+    console.log(parsedData);
     parsedformData = parsedData.formData || {};
     initializeFieldSelection(parsedformData);
     updateDataPreview();

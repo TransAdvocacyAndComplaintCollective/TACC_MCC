@@ -28,6 +28,10 @@ const mapping_to_formDAta = {
   "Which radio station is your complaint about?": "radio_station",
   "Please enter your local radio station": "localradio",
 
+  // Website/App-specific fields
+  "Which website or app is your complaint about?": "bbcwebsite_app",
+  "Please give the URL, or name of the app": "bbc_url_or_appname",
+
   // Programme details
   "What is the programme title?": "programmetitle",
   "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
@@ -70,7 +74,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Create a container object for the parsed data
     const parsedData = {
       // Optionally store the raw table data for reference
-      formData: allReviewTableData,
+      formData: {},
     };
 
     // 4) Map the table data keys to your form fields
@@ -78,10 +82,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const mappedField = mapping_to_formDAta[key];
       if (mappedField) {
         // If we have a known mapping, place it under that field name
-        parsedData[mappedField] = allReviewTableData[key];
+        parsedData["formData"][mappedField] = allReviewTableData[key];
       } else {
-        // If no mapping is found, store it under the original key
-        parsedData[key] = allReviewTableData[key];
+        // If no mapping is found, store under the original key
+        parsedData["formData"][key] = allReviewTableData[key];
       }
     }
 
