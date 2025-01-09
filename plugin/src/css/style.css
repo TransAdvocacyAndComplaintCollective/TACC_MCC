@@ -111,6 +111,12 @@ button {
 #success {
     color: #4caf50;
     font-size: 16px;
+    margin-left: 130px;
+}
+
+#complaintText {
+    margin-top: 25px;
+    margin-left: 130px;
 }
 
 #container {
