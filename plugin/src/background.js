@@ -1,45 +1,60 @@
 // background.js
 
-// 1) If you have a specific mapping from table data to form fields,
-//    define it here. You can add key-value pairs such as:
-//    "Review Table Title": "title"
+// 1) Mapping the table row labels to your chosen internal field names
 const mapping_to_formDAta = {  
-  "":"originUrl",
-  "":"previous_complaint",
-  "":"captcha",
-  "":"dateproblemstarted",
-  "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage":"description",
-  "Email address":"emailaddress", // Optional
-  "First Name":"firstname", // Optional
-  "Last Name":"lastname", // Optional
-  "Title (i.e. Mr, Ms etc.)":"salutation",
-  "":"generalissue1",
-  "":"intro_text",
-  "":"iswelsh",
-  "":"liveorondemand",
-  "":"localradio",
-  "":"make",
-  "":"moderation_text",
-  "":"network",
-  "":"outside_the_uk",
-  "":"platform",
-  "":"programme",
-  "":"programmeid",
-  "":"reception_text",
-  "":"redbuttonfault",
-  "":"region",
-  "":"responserequired",
-  "":"servicetv",
-  "":"sounds_text",
-  "":"sourceurl",
-  "":"subject",
-  "What is the subject of your complaint?":"title",
-  "":"transmissiondate",
-  "":"transmissiontime",
-  "Are you under 18?":"under18", // <-- Un-commented
-  "":"verifyform",
-  "":"complaint_nature",
-  "":"complaint_nature_sounds",
+  // Existing mappings (examples—rename the right side fields as you see fit)
+  "What is your complaint about?": "generalissue1",
+  "Are you contacting us about a previous complaint?": "previous_complaint",
+  "Select the best category to describe your complaint": "complaint_category",
+  "What is the subject of your complaint?": "subject",
+  "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage": "description",
+  "Do you require a response to your complaint?": "responserequired",
+  "Location": "location",
+  "Title (i.e. Mr, Ms etc.)": "salutation",
+  "First Name": "firstname",
+  "Last Name": "lastname",
+  "Email address": "emailaddress",
+  "Phone number": "phonenumber",
+  "Postcode": "postcode",
+  "Address Line 1": "addressline1",
+  "Town/City": "towncity",
+  "Are you under 18?": "under18",
+
+  // TV-specific fields (if needed)
+  "Which TV channel or service is your complaint about?": "tvchannel",
+
+  // Radio / BBC Sounds-specific fields
+  "What is the nature of your complaint?": "complaint_nature_sounds",
+  "Which radio station is your complaint about?": "radio_station",
+  "Please enter your local radio station": "localradio",
+
+  // Programme details
+  "What is the programme title?": "programmetitle",
+  "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
+  "How did you watch or listen to the programme?": "liveorondemand",
+  "Roughly how far into the programme did the issue happen?": "timestamp",
+
+  // Optionally keep placeholders for unused or future fields
+  "": "originUrl",
+  "": "captcha",
+  "": "dateproblemstarted",
+  "": "intro_text",
+  "": "iswelsh",
+  "": "make",
+  "": "moderation_text",
+  "": "network",
+  "": "outside_the_uk",
+  "": "platform",
+  "": "programme",
+  "": "programmeid",
+  "": "reception_text",
+  "": "redbuttonfault",
+  "": "region",
+  "": "servicetv",
+  "": "sounds_text",
+  "": "sourceurl",
+  "": "transmissiontime",
+  "": "verifyform",
 };
 
 // 2) For cross-browser compatibility (optional)
@@ -49,43 +64,39 @@ if (typeof browser === "undefined") {
 
 // 3) Listen for messages from the content script
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Check the action in the message
   if (message.action === "sendText") {
-    // Extract the table data sent from the content script
     const allReviewTableData = message.allReviewTableData;
 
-    // Create a container object if you want to store everything together
+    // Create a container object for the parsed data
     const parsedData = {
-      // Store original table data under "formData" if desired
+      // Optionally store the raw table data for reference
       formData: allReviewTableData,
     };
 
-    // 4) Optionally map the table data keys to your form fields
+    // 4) Map the table data keys to your form fields
     for (const key in allReviewTableData) {
       const mappedField = mapping_to_formDAta[key];
       if (mappedField) {
         // If we have a known mapping, place it under that field name
         parsedData[mappedField] = allReviewTableData[key];
       } else {
-        // Otherwise, store it under the original key
+        // If no mapping is found, store it under the original key
         parsedData[key] = allReviewTableData[key];
       }
     }
 
-    // 5) Grab the page URL from the sender.tab object
+    // 5) Grab the page URL from the sender.tab object (optional)
     const originUrl = sender?.tab?.url ? sender.tab.url : "";
 
-    // Log for debugging
+    // Log for debugging (optional)
     console.log("Captured Review Table Data:", allReviewTableData);
     console.log("parsedData object:", parsedData);
     console.log("URL of the page:", originUrl);
 
-    // 6) Prepare data to pass to the confirmation page
-    //    Convert your parsedData to a JSON string
+    // 6) Convert your parsedData to a JSON string
     const dataToCopy = JSON.stringify(parsedData);
 
     // 7) Construct the confirmation page URL
-    //    Include originUrl and data in the query string
     const confirmationUrl = `${browser.runtime.getURL(
       "confirmation/confirmation.html"
     )}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
@@ -98,10 +109,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log("Tab created successfully:", tab);
       }
     });
-    // 10) Finally, send a success response back to the content script
+
+    // 9) Finally, send a success response back to the content script
     sendResponse({ status: "success" });
   }
 
-  // If you do async operations (e.g., fetch or chrome.tabs.query) before
-  // calling sendResponse, remember to `return true;` here for async handling.
+  // Return true if you have any async work to do before responding
 });
