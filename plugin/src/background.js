@@ -1,187 +1,107 @@
-if (typeof browser === 'undefined') {
+// background.js
+
+// 1) If you have a specific mapping from table data to form fields,
+//    define it here. You can add key-value pairs such as:
+//    "Review Table Title": "title"
+const mapping_to_formDAta = {  
+  "":"originUrl",
+  "":"previous_complaint",
+  "":"captcha",
+  "":"dateproblemstarted",
+  "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage":"description",
+  "Email address":"emailaddress", // Optional
+  "First Name":"firstname", // Optional
+  "Last Name":"lastname", // Optional
+  "Title (i.e. Mr, Ms etc.)":"salutation",
+  "":"generalissue1",
+  "":"intro_text",
+  "":"iswelsh",
+  "":"liveorondemand",
+  "":"localradio",
+  "":"make",
+  "":"moderation_text",
+  "":"network",
+  "":"outside_the_uk",
+  "":"platform",
+  "":"programme",
+  "":"programmeid",
+  "":"reception_text",
+  "":"redbuttonfault",
+  "":"region",
+  "":"responserequired",
+  "":"servicetv",
+  "":"sounds_text",
+  "":"sourceurl",
+  "":"subject",
+  "What is the subject of your complaint?":"title",
+  "":"transmissiondate",
+  "":"transmissiontime",
+  "Are you under 18?":"under18", // <-- Un-commented
+  "":"verifyform",
+  "":"complaint_nature",
+  "":"complaint_nature_sounds",
+};
+
+// 2) For cross-browser compatibility (optional)
+if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-let pendingData = null;
+// 3) Listen for messages from the content script
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Check the action in the message
+  if (message.action === "sendText") {
+    // Extract the table data sent from the content script
+    const allReviewTableData = message.allReviewTableData;
 
-// Function to open the init page on initial launch
-function openInitPage() {
-  const initUrl = browser.runtime.getURL("init/init.html");
-  browser.tabs.create({ url: initUrl }, (tab) => {
-    if (browser.runtime.lastError) {
-      console.error("Error opening init page:", browser.runtime.lastError);
-    } else {
-      console.log("Init page opened successfully:", tab);
-    }
-  });
-}
+    // Create a container object if you want to store everything together
+    const parsedData = {
+      // Store original table data under "formData" if desired
+      formData: allReviewTableData,
+    };
 
-// Listen for the extension installation event
-browser.runtime.onInstalled.addListener((details) => {
-  if (details.reason === "install") {
-    // Open the init page only on first installation
-    openInitPage();
-  }
-});
-
-// Listen for POST requests from BBC
-browser.webRequest.onBeforeRequest.addListener(
-  async (details) => {
-    const result = await browser.storage.local.get('privacyPolicyAccepted');
-    const privacyPolicyAccepted = result.privacyPolicyAccepted;
-    if (!privacyPolicyAccepted) {
-      return {};
-    }
-    if ("https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage" !== details.url) {
-      return {};
-    }
-
-    if (
-      details.method === "POST" &&
-      details.originUrl &&
-      new URL(details.originUrl).hostname.endsWith("bbc.co.uk")
-    ) {
-      const requestBody = details.requestBody;
-
-      if (requestBody) {
-        let dataToCopy = "";
-
-        // Handling form data
-        if (requestBody.formData) {
-          const formData = {};
-          for (const [key, value] of Object.entries(requestBody.formData)) {
-            formData[key] = value[0];
-          }
-          dataToCopy = JSON.stringify(formData, null, 2);
-          console.log("Intercepted Form Data:", formData);
-        }
-        // Handling raw data
-        else if (requestBody.raw && requestBody.raw[0]?.bytes) {
-          try {
-            const decoder = new TextDecoder("utf-8");
-            const rawData = requestBody.raw[0].bytes;
-            const decodedData = decoder.decode(rawData);
-            dataToCopy = decodedData;
-            console.log("Intercepted Raw Data:", decodedData);
-          } catch (e) {
-            console.error("Error decoding raw data:", e);
-          }
-        }
-
-        if (dataToCopy) {
-          // Store the data and origin URL
-          try {
-            pendingData = JSON.parse(dataToCopy);
-          } catch (e) {
-            console.error("Failed to parse intercepted data as JSON:", e);
-            pendingData = dataToCopy; // Fallback to raw string if parsing fails
-          }
-          pendingOriginUrl = details.originUrl;
-
-          // Open confirmation page in a new tab
-          const confirmationUrl = `${browser.runtime.getURL(
-            "confirmation/confirmation.html"
-          )}?originUrl=${encodeURIComponent(details.originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-          browser.tabs.create({ url: confirmationUrl }, (tab) => {
-            if (chrome.runtime.lastError) {
-              console.error("Error creating tab:", chrome.runtime.lastError);
-            } else {
-              console.log("Tab created successfully:", tab);
-            }
-          });
-        }
+    // 4) Optionally map the table data keys to your form fields
+    for (const key in allReviewTableData) {
+      const mappedField = mapping_to_formDAta[key];
+      if (mappedField) {
+        // If we have a known mapping, place it under that field name
+        parsedData[mappedField] = allReviewTableData[key];
+      } else {
+        // Otherwise, store it under the original key
+        parsedData[key] = allReviewTableData[key];
       }
     }
-    return {};
-  },
-  {
-    urls: ["https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage"],
-    types: ["xmlhttprequest"],
-  },
-  ["requestBody"]
-);
 
-// // Listen for messages from confirmation page
-// browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//   if (message.action === 'confirmSend' && pendingData && pendingOriginUrl) {
-//     // User confirmed to send data
-//     sendStatus = 'Sending...';
-//     sendResponse({ status: 'Sending...' });
-//     sendToTACC(pendingData, pendingOriginUrl)
-//       .then(() => {
-//         sendStatus = 'Data sent successfully';
-//         console.log("Data successfully sent to TACC");
-//       })
-//       .catch((error) => {
-//         sendStatus = 'Failed to send data';
-//         console.error("Failed to send data:", error);
-//       })
-//       .finally(() => {
-//         pendingData = null;
-//         pendingOriginUrl = null;
-//       });
-//     return true; // Indicates that the response is asynchronous
-//   } else if (message.action === 'cancelSend') {
-//     // User canceled
-//     console.log("User canceled sending data to TACC.");
-//     sendStatus = 'Idle';
-//     pendingData = null;
-//     pendingOriginUrl = null;
-//   } else if (message.action === 'getSendStatus') {
-//     // Handle status requests
-//     sendResponse({ status: sendStatus });
-//   }
-// });
+    // 5) Grab the page URL from the sender.tab object
+    const originUrl = sender?.tab?.url ? sender.tab.url : "";
 
-// // Function to send the intercepted data to TACC
-// async function sendToTACC(data, originUrl) {
-//   try {
-//     await fetch("https://tacc.org.uk/api/intercept", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json"
-//       },
-//       body: JSON.stringify({
-//         originUrl: originUrl,
-//         interceptedData: data
-//       })
-//     });
-//     sendStatus = 'Data sent successfully';
-//   } catch (error) {
-//     sendStatus = 'Failed to send data';
-//     throw error; // Rethrow to be caught in the caller
-//   }
-// }
+    // Log for debugging
+    console.log("Captured Review Table Data:", allReviewTableData);
+    console.log("parsedData object:", parsedData);
+    console.log("URL of the page:", originUrl);
 
-// // Function to check for problematic stories
-// async function checkForProblematicStories() {
-//   console.log("Checking for problematic stories...");
-//   try {
-//     const response = await fetch("endpoint.trans-matters.org.uk/problematic");
-//     if (response.ok) {
-//       const data = await response.json();
-//       if (data.length > 0) {
-//         data.forEach((story) => {
-//           browser.notifications.create({
-//             type: "basic",
-//             iconUrl: "icons/icon48.png",
-//             title: "Problematic Story Alert",
-//             message: `Title: ${story.title}\nClick to view more.`
-//           }, (notificationId) => {
-//             // Attach click handler for notification
-//             browser.notifications.onClicked.addListener((id) => {
-//               if (id === notificationId) {
-//                 browser.tabs.create({ url: story.url });
-//               }
-//             });
-//           });
-//         });
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Failed to check for problematic stories:", error);
-//   }
-// }
+    // 6) Prepare data to pass to the confirmation page
+    //    Convert your parsedData to a JSON string
+    const dataToCopy = JSON.stringify(parsedData);
 
-// // Set intervals for checking problematic stories
-// setInterval(checkForProblematicStories, 60000); // Check every 1 minute
+    // 7) Construct the confirmation page URL
+    //    Include originUrl and data in the query string
+    const confirmationUrl = `${browser.runtime.getURL(
+      "confirmation/confirmation.html"
+    )}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
+
+    // 8) Open the confirmation page in a new tab
+    browser.tabs.create({ url: confirmationUrl }, (tab) => {
+      if (browser.runtime.lastError) {
+        console.error("Error creating tab:", browser.runtime.lastError);
+      } else {
+        console.log("Tab created successfully:", tab);
+      }
+    });
+    // 10) Finally, send a success response back to the content script
+    sendResponse({ status: "success" });
+  }
+
+  // If you do async operations (e.g., fetch or chrome.tabs.query) before
+  // calling sendResponse, remember to `return true;` here for async handling.
+});

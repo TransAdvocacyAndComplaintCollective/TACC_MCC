@@ -1,19 +1,9 @@
 {
-  "manifest_version": 3,
-  "name": "TACC media complaints collector",
+  "name": "TACC Media Complaints Collector",
   "version": "0.1.1",
+  "manifest_version": 3,
   "description": "TACC media complaints collector requests from British news sites and forwards the data to TACC.",
-  "permissions": [
-    "webRequest",
-    "webRequestBlocking",
-    "activeTab",
-    "tabs",
-    "storage",
-    "notifications",
-    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage",
-    "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*"
-    
-  ],
+  "permissions": ["activeTab", "storage", "notifications"],
   "host_permissions": [
     "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage",
     "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*"
@@ -33,6 +23,12 @@
     "16": "icons/image-16.png",
     "48": "icons/image-48.png"
   },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
   "web_accessible_resources": [
     {
       "resources": [
