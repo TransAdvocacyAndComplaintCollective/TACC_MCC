@@ -19,10 +19,6 @@ const mapping_to_formData = {
   "First Name": "firstname",
   "Last Name": "lastname",
   "Email address": "emailaddress",
-  // "Phone number": "phonenumber",
-  // "Postcode": "postcode",
-  // "Address Line 1": "addressline1",
-  // "Town/City": "towncity",
   "Are you under 18?": "under18",
 
   // TV-specific fields (if needed)
@@ -85,8 +81,37 @@ if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-// 3) Listen for messages from the content script
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+
+
+// 3) Open init/init.html on install
+browser.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    const initUrl = browser.runtime.getURL("init/init.html");
+    browser.tabs.create({ url: initUrl }, (tab) => {
+      if (browser.runtime.lastError) {
+        console.error("Error creating init tab:", browser.runtime.lastError);
+      } else {
+        console.log("Init tab created successfully:", tab);
+      }
+    });
+  }
+});
+
+
+// 4) Listen for messages from the content script
+browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  let privacyPolicyAccepted = false;
+  try {
+    const result = await browser.storage.local.get("privacyPolicyAccepted");
+    privacyPolicyAccepted = result.privacyPolicyAccepted || false;
+  } catch (error) {
+    console.error("Error checking privacy policy status:", error);
+  }
+  if (privacyPolicyAccepted === false) {
+    return;
+  }
+
+
   if (message.action === "sendText") {
     const allReviewTableData = message.allReviewTableData;
 
@@ -96,19 +121,19 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       formData: {},
     };
 
-    // 4) Map the table data keys to your form fields
+    // 5) Map the table data keys to your form fields
     for (const key in allReviewTableData) {
       const mappedField = mapping_to_formData[key];
       if (mappedField) {
         // If we have a known mapping, place it under that field name
-        parsedData["formData"][mappedField] = allReviewTableData[key];
+        parsedData.formData[mappedField] = allReviewTableData[key];
       } else {
         // If no mapping is found, store under the original key
-        parsedData["formData"][key] = allReviewTableData[key];
+        parsedData.formData[key] = allReviewTableData[key];
       }
     }
 
-    // 5) Grab the page URL from the sender.tab object (optional)
+    // 6) Grab the page URL from the sender.tab object (optional)
     const originUrl = sender?.tab?.url ? sender.tab.url : "";
 
     // Log for debugging (optional)
@@ -116,15 +141,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("parsedData object:", parsedData);
     console.log("URL of the page:", originUrl);
 
-    // 6) Convert your parsedData to a JSON string
+    // 7) Convert your parsedData to a JSON string
     const dataToCopy = JSON.stringify(parsedData);
 
-    // 7) Construct the confirmation page URL
+    // 8) Construct the confirmation page URL
     const confirmationUrl = `${browser.runtime.getURL(
       "confirmation/confirmation.html"
     )}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
 
-    // 8) Open the confirmation page in a new tab
+    // 9) Open the confirmation page in a new tab
     browser.tabs.create({ url: confirmationUrl }, (tab) => {
       if (browser.runtime.lastError) {
         console.error("Error creating tab:", browser.runtime.lastError);
@@ -133,9 +158,9 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
 
-    // 9) Finally, send a success response back to the content script
+    // 10) Finally, send a success response back to the content script
     sendResponse({ status: "success" });
   }
 
-  // Return true if you have any async work to do before responding
+  // Since we're using an async listener, no need to return true here.
 });

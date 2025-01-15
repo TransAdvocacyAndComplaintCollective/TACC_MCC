@@ -1,31 +1,32 @@
+// Function to handle the checkbox change event
+function handlePrivacyPolicyChange(event) {
+    const isChecked = event.target.checked;
 
-        // Function to handle the checkbox change event
-        function handlePrivacyPolicyChange(event) {
-            const isChecked = event.target.checked;
-
-            // Set the value in browser.storage.local
-            browser.storage.local.set({ privacyPolicyAccepted: isChecked })
-                .then(() => {
-                    console.log(`Privacy policy accepted: ${isChecked}`);
-                })
-                .catch(error => {
-                    console.error('Error setting privacy policy in storage:', error);
-                });
+    // Set the value in chrome.storage.local
+    chrome.storage.local.set({ privacyPolicyAccepted: isChecked }, () => {
+        if (chrome.runtime.lastError) {
+            console.error('Error setting privacy policy in storage:', chrome.runtime.lastError);
+        } else {
+            console.log(`Privacy policy accepted: ${isChecked}`);
         }
+    });
+}
 
-        // Add event listener after DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            const privacyCheckbox = document.getElementById('privacyPolicy');
-            
-            // Restore previous state from storage
-            browser.storage.local.get('privacyPolicyAccepted').then(result => {
-                if (result.privacyPolicyAccepted) {
-                    privacyCheckbox.checked = true;
-                }
-            }).catch(error => {
-                console.error('Error retrieving privacy policy state:', error);
-            });
+// Add event listener after DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    const privacyCheckbox = document.getElementById('privacyPolicy');
 
-            // Attach the event listener to the checkbox
-            privacyCheckbox.addEventListener('change', handlePrivacyPolicyChange);
-        });
+    // Restore previous state from storage
+    chrome.storage.local.get('privacyPolicyAccepted', (result) => {
+        if (chrome.runtime.lastError) {
+            console.error('Error retrieving privacy policy state:', chrome.runtime.lastError);
+        } else {
+            if (result.privacyPolicyAccepted) {
+                privacyCheckbox.checked = true;
+            }
+        }
+    });
+
+    // Attach the event listener to the checkbox
+    privacyCheckbox.addEventListener('change', handlePrivacyPolicyChange);
+});
