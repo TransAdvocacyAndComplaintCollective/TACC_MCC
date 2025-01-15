@@ -3,21 +3,26 @@
 // 1) Mapping the table row labels to your chosen internal field names
 const mapping_to_formData = {  
   // Existing mappings (examples—rename the right side fields as you see fit)
+  // Complaint
   "What is your complaint about?": "generalissue1",
   "Are you contacting us about a previous complaint?": "previous_complaint",
+
+  // Your Complaint
   "Select the best category to describe your complaint": "complaint_category",
   "What is the subject of your complaint?": "subject",
-  "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage": "description",
   "Do you require a response to your complaint?": "responserequired",
+  "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage": "description",
+
+  // Your Details
   "Location": "location",
   "Title (i.e. Mr, Ms etc.)": "salutation",
   "First Name": "firstname",
   "Last Name": "lastname",
   "Email address": "emailaddress",
-  "Phone number": "phonenumber",
-  "Postcode": "postcode",
-  "Address Line 1": "addressline1",
-  "Town/City": "towncity",
+  // "Phone number": "phonenumber",
+  // "Postcode": "postcode",
+  // "Address Line 1": "addressline1",
+  // "Town/City": "towncity",
   "Are you under 18?": "under18",
 
   // TV-specific fields (if needed)
@@ -30,7 +35,7 @@ const mapping_to_formData = {
 
   // Website/App-specific fields
   "Which website or app is your complaint about?": "bbcwebsite_app",
-  "Please give the URL, or name of the app": "bbc_url_or_appname",
+  "Please give the URL, or name of the app": "sourceurl",
 
   // Programme details
   "What is the programme title?": "programmetitle",
@@ -39,26 +44,56 @@ const mapping_to_formData = {
   "Roughly how far into the programme did the issue happen?": "timestamp",
 
   // Optionally keep placeholders for unused or future fields
-  "": "originUrl",
+  "Location": "region",
+
+  "": "originUrl", // should always be https://www.bbc.co.uk/contact/complaints/make-a-complaint/#/review
   "": "captcha",
-  "": "dateproblemstarted",
+  "When did you first notice the problem?": "dateproblemstarted",
   "": "intro_text",
   "": "iswelsh",
   "": "make",
   "": "moderation_text",
-  "": "network",
+  "Please enter your local radio station": "network",
+  "Which website or app is your complaint about?": "network",
   "": "outside_the_uk",
   "": "platform",
   "": "programme",
   "": "programmeid",
   "": "reception_text",
   "": "redbuttonfault",
-  "": "region",
   "": "servicetv",
   "": "sounds_text",
-  "": "sourceurl",
   "": "transmissiontime",
-  "": "verifyform",
+  "": "verifyform", // always true
+
+  // ---- Newly added mappings ----
+  "Please enter your local radio station": "network",
+  "What's the issue?": "redbuttonfault",
+  "This helps us trace the problem": "platform",
+  "Which radio station is your complaint about?": "network",
+  "Which TV channel or service is your complaint about?": "network",
+  "Which website or app is your complaint about?": "network",
+  "If you know, what make or model is your set top box/smart TV?": "make",
+  "Please enter your complaint": "description",
+  "How did you watch or listen to the programme?": "liveorondemand",
+  "Case number of your previous complaint": "casenumber",
+  "Email Address": "emailaddress",
+  "Are you contacting us about a previous complaint?": "are_you_contacting_us_about_a_previous_complaint_",
+  "When did you first notice the problem?": "dateproblemstarted",
+  "What is your complaint about?": "platform",
+  "Which radio station is your complaint about?": "serviceradio",
+  "Which TV channel or service is your complaint about?": "servicetv",
+  "Please give the URL, or name of the app": "sourceurl",
+  "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_",
+  // If separate mapping needed for sounds context, uncomment the next line:
+  // "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_sounds",
+  "Select the best category to describe your complaint": "generalissue1",
+  "What is the programme title?": "programme",
+  "What is the programme title?_id": "programmeid",
+  "What is the subject of your complaint?": "title",
+  "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
+  "Roughly how far into the programme did the issue happen?": "transmissiontime",
+  "Are you under 18?": "under18"
 };
 
 // 2) For cross-browser compatibility (optional)
