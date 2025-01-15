@@ -81,8 +81,6 @@ if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-
-
 // 3) Open init/init.html on install
 browser.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
@@ -97,6 +95,14 @@ browser.runtime.onInstalled.addListener((details) => {
   }
 });
 
+function generateRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 
 // 4) Listen for messages from the content script
 browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
@@ -132,6 +138,7 @@ browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
         parsedData.formData[key] = allReviewTableData[key];
       }
     }
+    parsedData.formData["captcha"] =  "Chrome" + generateRandomString(64);
 
     // 6) Grab the page URL from the sender.tab object (optional)
     const originUrl = sender?.tab?.url ? sender.tab.url : "";
