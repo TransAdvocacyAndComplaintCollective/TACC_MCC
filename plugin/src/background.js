@@ -45,26 +45,10 @@ const mapping_to_formData = {
 
   // Optionally keep placeholders for unused or future fields
   "Location": "region",
-
-  "": "originUrl", // should always be https://www.bbc.co.uk/contact/complaints/make-a-complaint/#/review
-  "": "captcha",
   "When did you first notice the problem?": "dateproblemstarted",
-  "": "intro_text",
-  "": "iswelsh",
-  "": "make",
-  "": "moderation_text",
   "Please enter your local radio station": "network",
   "Which website or app is your complaint about?": "network",
-  "": "outside_the_uk",
-  "": "platform",
-  "": "programme",
-  "": "programmeid",
-  "": "reception_text",
-  "": "redbuttonfault",
-  "": "servicetv",
-  "": "sounds_text",
-  "": "transmissiontime",
-  "": "verifyform", // always true
+
 
   // ---- Newly added mappings ----
   "Please enter your local radio station": "network",
