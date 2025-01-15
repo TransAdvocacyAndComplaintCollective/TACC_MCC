@@ -81,6 +81,14 @@ const fieldDetails = {
   },
 };
 
+function generateRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 // Use `chrome` API for compatibility with Google Chrome
 const browser = chrome;
 
@@ -90,6 +98,10 @@ const originUrl = urlParams.get("originUrl");
 const data = urlParams.get("data")
   ? decodeURIComponent(urlParams.get("data"))
   : null;
+if(chrome){
+  data["captcha"] =  "Chrome" + generateRandomString(40);
+}
+
 
 // Function to handle UI changes upon successful submission
 function handleSuccess(complaintId) {
