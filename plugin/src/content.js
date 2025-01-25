@@ -1,54 +1,73 @@
+// Global counter for how many pages have been processed
+let count_page = 0;
+
 // Function to extract data from all review tables and send it to the background script
 function extractAllReviewTableData() {
-    // Select all review tables
     const reviewTables = document.querySelectorAll('.review-table');
+    console.log("Page count:", count_page);
 
     if (reviewTables.length > 0) {
+        // We've found review tables; increment the count
+        count_page++;
+        console.log("Review tables found:", reviewTables.length);
+        console.log("Page count:", count_page);
+
+        // Only proceed to send data when count_page === 4
+        if (count_page !== 4) {
+            return;
+        }
+
+        // Build an object to hold data from all review tables
         const allReviewTableData = {};
 
-        reviewTables.forEach((table, index) => {
+        // Iterate over each review table on the page
+        reviewTables.forEach((table) => {
             // Get all rows in the current table
             const review_tableRows = table.querySelectorAll('tr');
 
             // Loop through each row and extract cell data
             review_tableRows.forEach((row) => {
-                const cells = row.querySelectorAll('td'); // Adjust to 'th' if needed for header rows
-
-                // Ensure there are at least two cells in the row before extracting
+                const cells = row.querySelectorAll('td');
                 if (cells.length >= 2) {
-                    allReviewTableData[cells[0].innerText] = cells[1].innerText;
-                } else {
-                    console.warn("Row does not contain enough cells.");
+                    const key = cells[0].innerText.trim();
+                    const value = cells[1].innerText.trim();
+                    allReviewTableData[key] = value;
                 }
             });
         });
 
-        // Send the extracted data for all tables to the background script
-        chrome.runtime.sendMessage({
-            action: "sendText",
-            allReviewTableData: allReviewTableData,
-        }, (response) => {
-            // Log the response from the background script (optional)
-            console.log("Background response:", response);
-        });
+        // Safely check for chrome.runtime to avoid TypeError
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            chrome.runtime.sendMessage(
+                {
+                    action: "sendText",
+                    allReviewTableData: allReviewTableData,
+                },
+                (response) => {
+                    console.log("Background response:", response);
+                }
+            );
+        } else {
+            console.warn("chrome.runtime.sendMessage is not available in this context.");
+        }
     } else {
         console.warn("No review tables found on this page.");
+        // If you do want to reset count_page when no tables are found, do:
+        count_page = 0;
     }
 }
 
-// Function to set up MutationObserver to monitor DOM changes
+// Observe DOM changes and run extractAllReviewTableData whenever the DOM updates
 function observeDOMChanges() {
-    const observer = new MutationObserver((mutationsList, observer) => {
-        // Check if any review table is present after each DOM change
+    const observer = new MutationObserver(() => {
         extractAllReviewTableData();
     });
 
-    // Configure the observer to watch for changes in child nodes and subtree
     observer.observe(document.body, {
         childList: true,
         subtree: true,
     });
 }
 
-// Start observing DOM changes when the content script loads
+// Initialize observation when the content script loads
 observeDOMChanges();
