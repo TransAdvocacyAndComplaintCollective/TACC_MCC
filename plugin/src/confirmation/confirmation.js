@@ -123,9 +123,10 @@ function handleSuccess(complaintId) {
     dataContentEl.appendChild(successSpan);
     dataContentEl.appendChild(document.createElement("br"));
 
-    const complaintText = document.createElement("div");
-    const complaintStrong = document.createElement("strong");
-    complaintStrong.textContent = "Your complaint number is: ";
+    const complaintText = document.createElement('div');
+    complaintText.id = 'complaintText';
+    const complaintStrong = document.createElement('strong');
+    complaintStrong.textContent = 'Your complaint number is: ';
     complaintText.appendChild(complaintStrong);
     complaintText.appendChild(document.createTextNode(complaintId));
 
