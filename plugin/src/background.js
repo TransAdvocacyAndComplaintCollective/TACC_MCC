@@ -1,187 +1,173 @@
-if (typeof browser === 'undefined') {
+// background.js
+
+// 1) Mapping the table row labels to your chosen internal field names
+const mapping_to_formData = {  
+  // Existing mappings (examples—rename the right side fields as you see fit)
+  // Complaint
+  "What is your complaint about?": "generalissue1",
+  "Are you contacting us about a previous complaint?": "previous_complaint",
+
+  // Your Complaint
+  "Select the best category to describe your complaint": "complaint_category",
+  "What is the subject of your complaint?": "subject",
+  "Do you require a response to your complaint?": "responserequired",
+  "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage": "description",
+
+  // Your Details
+  "Location": "location",
+  "Title (i.e. Mr, Ms etc.)": "salutation",
+  "First Name": "firstname",
+  "Last Name": "lastname",
+  "Email address": "emailaddress",
+  "Are you under 18?": "under18",
+
+  // TV-specific fields (if needed)
+  "Which TV channel or service is your complaint about?": "tvchannel",
+
+  // Radio / BBC Sounds-specific fields
+  "What is the nature of your complaint?": "complaint_nature_sounds",
+  "Which radio station is your complaint about?": "radio_station",
+  "Please enter your local radio station": "localradio",
+
+  // Website/App-specific fields
+  "Which website or app is your complaint about?": "bbcwebsite_app",
+  "Please give the URL, or name of the app": "sourceurl",
+
+  // Programme details
+  "What is the programme title?": "programmetitle",
+  "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
+  "How did you watch or listen to the programme?": "liveorondemand",
+  "Roughly how far into the programme did the issue happen?": "timestamp",
+
+  // Optionally keep placeholders for unused or future fields
+  "Location": "region",
+  "When did you first notice the problem?": "dateproblemstarted",
+  "Please enter your local radio station": "network",
+  "Which website or app is your complaint about?": "network",
+
+
+  // ---- Newly added mappings ----
+  "Please enter your local radio station": "network",
+  "What's the issue?": "redbuttonfault",
+  "This helps us trace the problem": "platform",
+  "Which radio station is your complaint about?": "network",
+  "Which TV channel or service is your complaint about?": "network",
+  "Which website or app is your complaint about?": "network",
+  "If you know, what make or model is your set top box/smart TV?": "make",
+  "Please enter your complaint": "description",
+  "How did you watch or listen to the programme?": "liveorondemand",
+  "Case number of your previous complaint": "casenumber",
+  "Email Address": "emailaddress",
+  "Are you contacting us about a previous complaint?": "are_you_contacting_us_about_a_previous_complaint_",
+  "When did you first notice the problem?": "dateproblemstarted",
+  "What is your complaint about?": "platform",
+  "Which radio station is your complaint about?": "serviceradio",
+  "Which TV channel or service is your complaint about?": "servicetv",
+  "Please give the URL, or name of the app": "sourceurl",
+  "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_",
+  // If separate mapping needed for sounds context, uncomment the next line:
+  // "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_sounds",
+  "Select the best category to describe your complaint": "generalissue1",
+  "What is the programme title?": "programme",
+  "What is the programme title?_id": "programmeid",
+  "What is the subject of your complaint?": "title",
+  "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
+  "Roughly how far into the programme did the issue happen?": "transmissiontime",
+  "Are you under 18?": "under18"
+};
+
+// 2) For cross-browser compatibility (optional)
+if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-let pendingData = null;
-
-// Function to open the init page on initial launch
-function openInitPage() {
-  const initUrl = browser.runtime.getURL("init/init.html");
-  browser.tabs.create({ url: initUrl }, (tab) => {
-    if (browser.runtime.lastError) {
-      console.error("Error opening init page:", browser.runtime.lastError);
-    } else {
-      console.log("Init page opened successfully:", tab);
-    }
-  });
-}
-
-// Listen for the extension installation event
+// 3) Open init/init.html on install
 browser.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
-    // Open the init page only on first installation
-    openInitPage();
+    const initUrl = browser.runtime.getURL("init/init.html");
+    browser.tabs.create({ url: initUrl }, (tab) => {
+      if (browser.runtime.lastError) {
+        console.error("Error creating init tab:", browser.runtime.lastError);
+      } else {
+        console.log("Init tab created successfully:", tab);
+      }
+    });
   }
 });
 
-// Listen for POST requests from BBC
-browser.webRequest.onBeforeRequest.addListener(
-  async (details) => {
-    const result = await browser.storage.local.get('privacyPolicyAccepted');
-    const privacyPolicyAccepted = result.privacyPolicyAccepted;
-    if (!privacyPolicyAccepted) {
-      return {};
-    }
-    if ("https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage" !== details.url) {
-      return {};
-    }
+function generateRandomString(length) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+}
 
-    if (
-      details.method === "POST" &&
-      details.originUrl &&
-      new URL(details.originUrl).hostname.endsWith("bbc.co.uk")
-    ) {
-      const requestBody = details.requestBody;
+// 4) Listen for messages from the content script
+browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  let privacyPolicyAccepted = false;
+  try {
+    const result = await browser.storage.local.get("privacyPolicyAccepted");
+    privacyPolicyAccepted = result.privacyPolicyAccepted || false;
+  } catch (error) {
+    console.error("Error checking privacy policy status:", error);
+  }
+  if (privacyPolicyAccepted === false) {
+    return;
+  }
 
-      if (requestBody) {
-        let dataToCopy = "";
 
-        // Handling form data
-        if (requestBody.formData) {
-          const formData = {};
-          for (const [key, value] of Object.entries(requestBody.formData)) {
-            formData[key] = value[0];
-          }
-          dataToCopy = JSON.stringify(formData, null, 2);
-          console.log("Intercepted Form Data:", formData);
-        }
-        // Handling raw data
-        else if (requestBody.raw && requestBody.raw[0]?.bytes) {
-          try {
-            const decoder = new TextDecoder("utf-8");
-            const rawData = requestBody.raw[0].bytes;
-            const decodedData = decoder.decode(rawData);
-            dataToCopy = decodedData;
-            console.log("Intercepted Raw Data:", decodedData);
-          } catch (e) {
-            console.error("Error decoding raw data:", e);
-          }
-        }
+  if (message.action === "sendText") {
+    const allReviewTableData = message.allReviewTableData;
 
-        if (dataToCopy) {
-          // Store the data and origin URL
-          try {
-            pendingData = JSON.parse(dataToCopy);
-          } catch (e) {
-            console.error("Failed to parse intercepted data as JSON:", e);
-            pendingData = dataToCopy; // Fallback to raw string if parsing fails
-          }
-          pendingOriginUrl = details.originUrl;
+    // Create a container object for the parsed data
+    const parsedData = {
+      // Optionally store the raw table data for reference
+      formData: {},
+    };
 
-          // Open confirmation page in a new tab
-          const confirmationUrl = `${browser.runtime.getURL(
-            "confirmation/confirmation.html"
-          )}?originUrl=${encodeURIComponent(details.originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-          browser.tabs.create({ url: confirmationUrl }, (tab) => {
-            if (chrome.runtime.lastError) {
-              console.error("Error creating tab:", chrome.runtime.lastError);
-            } else {
-              console.log("Tab created successfully:", tab);
-            }
-          });
-        }
+    // 5) Map the table data keys to your form fields
+    for (const key in allReviewTableData) {
+      const mappedField = mapping_to_formData[key];
+      if (mappedField) {
+        // If we have a known mapping, place it under that field name
+        parsedData.formData[mappedField] = allReviewTableData[key];
+      } else {
+        // If no mapping is found, store under the original key
+        parsedData.formData[key] = allReviewTableData[key];
       }
     }
-    return {};
-  },
-  {
-    urls: ["https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage"],
-    types: ["xmlhttprequest"],
-  },
-  ["requestBody"]
-);
+    parsedData.formData["captcha"] =  "Chrome" + generateRandomString(64);
 
-// // Listen for messages from confirmation page
-// browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-//   if (message.action === 'confirmSend' && pendingData && pendingOriginUrl) {
-//     // User confirmed to send data
-//     sendStatus = 'Sending...';
-//     sendResponse({ status: 'Sending...' });
-//     sendToTACC(pendingData, pendingOriginUrl)
-//       .then(() => {
-//         sendStatus = 'Data sent successfully';
-//         console.log("Data successfully sent to TACC");
-//       })
-//       .catch((error) => {
-//         sendStatus = 'Failed to send data';
-//         console.error("Failed to send data:", error);
-//       })
-//       .finally(() => {
-//         pendingData = null;
-//         pendingOriginUrl = null;
-//       });
-//     return true; // Indicates that the response is asynchronous
-//   } else if (message.action === 'cancelSend') {
-//     // User canceled
-//     console.log("User canceled sending data to TACC.");
-//     sendStatus = 'Idle';
-//     pendingData = null;
-//     pendingOriginUrl = null;
-//   } else if (message.action === 'getSendStatus') {
-//     // Handle status requests
-//     sendResponse({ status: sendStatus });
-//   }
-// });
+    // 6) Grab the page URL from the sender.tab object (optional)
+    const originUrl = sender?.tab?.url ? sender.tab.url : "";
 
-// // Function to send the intercepted data to TACC
-// async function sendToTACC(data, originUrl) {
-//   try {
-//     await fetch("https://tacc.org.uk/api/intercept", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json"
-//       },
-//       body: JSON.stringify({
-//         originUrl: originUrl,
-//         interceptedData: data
-//       })
-//     });
-//     sendStatus = 'Data sent successfully';
-//   } catch (error) {
-//     sendStatus = 'Failed to send data';
-//     throw error; // Rethrow to be caught in the caller
-//   }
-// }
+    // Log for debugging (optional)
+    console.log("Captured Review Table Data:", allReviewTableData);
+    console.log("parsedData object:", parsedData);
+    console.log("URL of the page:", originUrl);
 
-// // Function to check for problematic stories
-// async function checkForProblematicStories() {
-//   console.log("Checking for problematic stories...");
-//   try {
-//     const response = await fetch("endpoint.trans-matters.org.uk/problematic");
-//     if (response.ok) {
-//       const data = await response.json();
-//       if (data.length > 0) {
-//         data.forEach((story) => {
-//           browser.notifications.create({
-//             type: "basic",
-//             iconUrl: "icons/icon48.png",
-//             title: "Problematic Story Alert",
-//             message: `Title: ${story.title}\nClick to view more.`
-//           }, (notificationId) => {
-//             // Attach click handler for notification
-//             browser.notifications.onClicked.addListener((id) => {
-//               if (id === notificationId) {
-//                 browser.tabs.create({ url: story.url });
-//               }
-//             });
-//           });
-//         });
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Failed to check for problematic stories:", error);
-//   }
-// }
+    // 7) Convert your parsedData to a JSON string
+    const dataToCopy = JSON.stringify(parsedData);
 
-// // Set intervals for checking problematic stories
-// setInterval(checkForProblematicStories, 60000); // Check every 1 minute
+    // 8) Construct the confirmation page URL
+    const confirmationUrl = `${browser.runtime.getURL(
+      "confirmation/confirmation.html"
+    )}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
+
+    // 9) Open the confirmation page in a new tab
+    browser.tabs.create({ url: confirmationUrl }, (tab) => {
+      if (browser.runtime.lastError) {
+        console.error("Error creating tab:", browser.runtime.lastError);
+      } else {
+        console.log("Tab created successfully:", tab);
+      }
+    });
+
+    // 10) Finally, send a success response back to the content script
+    sendResponse({ status: "success" });
+  }
+
+  // Since we're using an async listener, no need to return true here.
+});

@@ -81,12 +81,17 @@ const fieldDetails = {
   },
 };
 
+
+// Use `chrome` API for compatibility with Google Chrome
+const browser = chrome;
+
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const originUrl = urlParams.get("originUrl");
 const data = urlParams.get("data")
   ? decodeURIComponent(urlParams.get("data"))
   : null;
+
 
 // Function to handle UI changes upon successful submission
 function handleSuccess(complaintId) {
@@ -102,19 +107,21 @@ function handleSuccess(complaintId) {
   cancelBtn.style.backgroundColor = "#4caf50";
 
   const dataContentEl = document.getElementById("dataContent");
-  dataContentEl.innerHTML = ''; // Clear existing content
+  dataContentEl.innerHTML = ""; // Clear existing content
 
   if (complaintId) {
-    const successSpan = document.createElement('span');
-    successSpan.id = 'success';
+    const successSpan = document.createElement("span");
+    successSpan.id = "success";
 
-    const strongSuccess = document.createElement('strong');
-    strongSuccess.textContent = 'Success!';
+    const strongSuccess = document.createElement("strong");
+    strongSuccess.textContent = "Success!";
     successSpan.appendChild(strongSuccess);
-    successSpan.appendChild(document.createTextNode(' Your data has been sent successfully.'));
+    successSpan.appendChild(
+      document.createTextNode(" Your data has been sent successfully.")
+    );
 
     dataContentEl.appendChild(successSpan);
-    dataContentEl.appendChild(document.createElement('br'));
+    dataContentEl.appendChild(document.createElement("br"));
 
     const complaintText = document.createElement('div');
     complaintText.id = 'complaintText';
@@ -124,18 +131,18 @@ function handleSuccess(complaintId) {
     complaintText.appendChild(document.createTextNode(complaintId));
 
     dataContentEl.appendChild(complaintText);
-    dataContentEl.appendChild(document.createElement('br'));
-    dataContentEl.appendChild(document.createElement('br'));
+    dataContentEl.appendChild(document.createElement("br"));
+    dataContentEl.appendChild(document.createElement("br"));
   } else {
-    const successStrong = document.createElement('strong');
-    successStrong.textContent = 'Success!';
+    const successStrong = document.createElement("strong");
+    successStrong.textContent = "Success!";
     dataContentEl.appendChild(successStrong);
-    dataContentEl.appendChild(document.createTextNode(' Your data has been sent successfully.'));
-    dataContentEl.appendChild(document.createElement('br'));
-    dataContentEl.appendChild(document.createElement('br'));
+    dataContentEl.appendChild(
+      document.createTextNode(" Your data has been sent successfully.")
+    );
+    dataContentEl.appendChild(document.createElement("br"));
+    dataContentEl.appendChild(document.createElement("br"));
   }
-
-  // Optionally, store a flag in localStorage to prevent future submissions
 }
 
 // Utility function to update content display
@@ -197,30 +204,34 @@ function getSelectedData() {
 // Function to send data to your server
 async function sendDataToServer(selectedData) {
   try {
-    const result = await browser.storage.local.get('privacyPolicyAccepted');
-    const privacyPolicyAccepted = result.privacyPolicyAccepted;
-    const response = await fetch("https://www.tacc.org.uk/api/intercept", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ originUrl: selectedData.originUrl, interceptedData: selectedData , privacyPolicyAccepted: privacyPolicyAccepted }),
-    });
-
-    if (!response.ok) throw new Error("Failed to send data. Please try again.");
-
-    const responseData = await response.json();
-    handleSuccess(responseData.id);
-
-    try {
-      const { bbcComplaints = [] } = await browser.storage.local.get("bbcComplaints");
-      bbcComplaints.push({
-        subject: selectedData.title,
-        id: responseData.id,
-        dateRetrieved: Date.now(),
+    chrome.storage.local.get("privacyPolicyAccepted", async (result) => {
+      const privacyPolicyAccepted = result.privacyPolicyAccepted;
+      const response = await fetch("https://www.tacc.org.uk/api/intercept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originUrl: selectedData.originUrl,
+          interceptedData: selectedData,
+          privacyPolicyAccepted: privacyPolicyAccepted,
+        }),
       });
-      await browser.storage.local.set({ bbcComplaints });
-    } catch (err) {
-      console.error("Error storing complaint ID:", err);
-    }
+
+      if (!response.ok)
+        throw new Error("Failed to send data. Please try again.");
+
+      const responseData = await response.json();
+      handleSuccess(responseData.id);
+
+      chrome.storage.local.get("bbcComplaints", (result) => {
+        const bbcComplaints = result.bbcComplaints || [];
+        bbcComplaints.push({
+          subject: selectedData.title,
+          id: responseData.id,
+          dateRetrieved: Date.now(),
+        });
+        chrome.storage.local.set({ bbcComplaints });
+      });
+    });
   } catch (error) {
     console.error("Error:", error);
     alert("An error occurred while sending data.");
@@ -240,6 +251,7 @@ let parsedformData = {};
 if (originUrl && data) {
   try {
     parsedData = JSON.parse(data);
+    console.log(parsedData);
     parsedformData = parsedData.formData || {};
     initializeFieldSelection(parsedformData);
     updateDataPreview();
@@ -258,11 +270,9 @@ document.getElementById("sendBtn").addEventListener("click", () => {
   sendDataToServer(selectedData);
 });
 
-document.getElementById("cancelBtn").addEventListener("click", async () => {
-  try {
-    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-    if (tabs.length && tabs[0].id) await browser.tabs.remove(tabs[0].id);
-  } catch {
-    alert("Please close the tab manually.");
-  }
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs.length && tabs[0].id) chrome.tabs.remove(tabs[0].id);
+    else alert("Please close the tab manually.");
+  });
 });

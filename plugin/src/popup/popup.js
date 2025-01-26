@@ -1,5 +1,9 @@
 // popup.js
 
+if (typeof browser === "undefined") {
+  var browser = chrome;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   // Initialize elements
 
