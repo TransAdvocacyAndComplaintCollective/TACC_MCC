@@ -1,32 +1,47 @@
-// Function to handle the checkbox change event
-function handlePrivacyPolicyChange(event) {
-    const isChecked = event.target.checked;
-
-    // Set the value in chrome.storage.local
-    chrome.storage.local.set({ privacyPolicyAccepted: isChecked }, () => {
-        if (chrome.runtime.lastError) {
-            console.error('Error setting privacy policy in storage:', chrome.runtime.lastError);
-        } else {
-            console.log(`Privacy policy accepted: ${isChecked}`);
-        }
+// storage.js (or inlined in your script)
+function storageGet(keys) {
+    return new Promise((resolve, reject) => {
+      if (typeof browser !== 'undefined' && browser.storage && browser.storage.local) {
+        // Firefox (and some newer Chrome versions if using a polyfill)
+        browser.storage.local
+          .get(keys)
+          .then(resolve)
+          .catch(reject);
+      } else if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        // Chrome (callback-based)
+        chrome.storage.local.get(keys, (result) => {
+          const error = chrome.runtime?.lastError;
+          if (error) {
+            return reject(error);
+          }
+          resolve(result);
+        });
+      } else {
+        reject(new Error('No storage API found.'));
+      }
     });
-}
-
-// Add event listener after DOM is fully loaded
-document.addEventListener('DOMContentLoaded', () => {
-    const privacyCheckbox = document.getElementById('privacyPolicy');
-
-    // Restore previous state from storage
-    chrome.storage.local.get('privacyPolicyAccepted', (result) => {
-        if (chrome.runtime.lastError) {
-            console.error('Error retrieving privacy policy state:', chrome.runtime.lastError);
-        } else {
-            if (result.privacyPolicyAccepted) {
-                privacyCheckbox.checked = true;
-            }
-        }
+  }
+  
+  function storageSet(items) {
+    return new Promise((resolve, reject) => {
+      if (typeof browser !== 'undefined' && browser.storage && browser.storage.local) {
+        // Firefox (and some newer Chrome versions if using a polyfill)
+        browser.storage.local
+          .set(items)
+          .then(resolve)
+          .catch(reject);
+      } else if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        // Chrome (callback-based)
+        chrome.storage.local.set(items, () => {
+          const error = chrome.runtime?.lastError;
+          if (error) {
+            return reject(error);
+          }
+          resolve();
+        });
+      } else {
+        reject(new Error('No storage API found.'));
+      }
     });
-
-    // Attach the event listener to the checkbox
-    privacyCheckbox.addEventListener('change', handlePrivacyPolicyChange);
-});
+  }
+  
