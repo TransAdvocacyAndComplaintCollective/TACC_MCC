@@ -187,7 +187,7 @@ function initializeFieldSelection(parsedData) {
       checkbox.checked = true;
       label.appendChild(checkbox);
       const fieldName = selectedConfig.fieldDetails[field]?.name || field;
-      label.appendChild(document.createTextNode(` ${fieldName}`));
+      label.appendChild(document.createTextNode(`${fieldName}`));
       if (selectedConfig.fieldDetails[field]?.optional) {
         const optionalSpan = document.createElement("span");
         optionalSpan.className = "optional";
@@ -282,10 +282,10 @@ function handleSuccess(complaintId) {
     dataContentEl.appendChild(successSpan);
     dataContentEl.appendChild(document.createElement("br"));
 
-    const complaintText = document.createElement('div');
-    complaintText.id = 'complaintText';
-    const complaintStrong = document.createElement('strong');
-    complaintStrong.textContent = 'Your complaint number is: ';
+    const complaintText = document.createElement("div");
+    complaintText.id = "complaintText";
+    const complaintStrong = document.createElement("strong");
+    complaintStrong.textContent = "Your complaint number is: ";
     complaintText.appendChild(complaintStrong);
     complaintText.appendChild(document.createTextNode(complaintId));
     dataContentEl.appendChild(complaintText);
@@ -322,16 +322,32 @@ if (originUrl && dataParam) {
   displayContent("No data available to display.", true);
 }
 
-// ----- EVENT LISTENERS FOR BUTTONS ----- //
-document.getElementById("sendBtn").addEventListener("click", () => {
+// ----- EVENT LISTENERS FOR BUTTONS -----
+
+// Flag to ensure the send button click handler runs exclusively.
+let isProcessingSend = false;
+document.getElementById("sendBtn").addEventListener("click", async (event) => {
+  // Stop any further click events on this button.
+  event.stopImmediatePropagation();
+  event.stopPropagation();
+
+  // If already processing, do nothing.
+  if (isProcessingSend) return;
+  isProcessingSend = true;
+
   if (!originUrl || !dataParam) {
-    return alert("Data or origin URL is missing.");
+    alert("Data or origin URL is missing.");
+    isProcessingSend = false;
+    return;
   }
   const selectedData = getSelectedData();
   if (Object.keys(selectedData).length === 0) {
-    return alert("No data selected.");
+    alert("No data selected.");
+    isProcessingSend = false;
+    return;
   }
-  sendDataToServer(selectedData);
+  await sendDataToServer(selectedData);
+  isProcessingSend = false;
 });
 
 document.getElementById("cancelBtn").addEventListener("click", () => {
