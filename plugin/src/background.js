@@ -1,55 +1,59 @@
 // background.js
 
-// 1) Mapping the table row labels to your chosen internal field names
+// Mapping table row labels to internal field names
 const mapping_to_formData = {
-  // Existing mappings (examples—rename the right side fields as you see fit)
-  "What is your complaint about?": "generalissue1",
-  "Are you contacting us about a previous complaint?": "previous_complaint",
-  "Select the best category to describe your complaint": "complaint_category",
-  "What is the subject of your complaint?": "subject",
+  // Complaint
+  "What is your complaint about?": "platform",
+  "Are you contacting us about a previous complaint?": "are_you_contacting_us_about_a_previous_complaint_",
+
+  // Your Complaint
+  "Select the best category to describe your complaint": "generalissue1",
+  "What is the subject of your complaint?": "title",
   "Do you require a response to your complaint?": "responserequired",
   "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage": "description",
-  "Location": "location",
+  "Please enter your complaint": "description",
+
+  // Your Details
+  "Location": "region", // Using region instead of location for consistency
   "Title (i.e. Mr, Ms etc.)": "salutation",
   "First Name": "firstname",
   "Last Name": "lastname",
   "Email address": "emailaddress",
+  "Email Address": "emailaddress",
   "Are you under 18?": "under18",
-  "Which TV channel or service is your complaint about?": "tvchannel",
-  "What is the nature of your complaint?": "complaint_nature_sounds",
-  "Which radio station is your complaint about?": "radio_station",
-  "Please enter your local radio station": "localradio",
-  "Which website or app is your complaint about?": "bbcwebsite_app",
+
+  // TV-specific fields
+  "Which TV channel or service is your complaint about?": "servicetv",
+
+  // Radio / BBC Sounds-specific fields
+  "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_",
+  "Which radio station is your complaint about?": "serviceradio",
+
+  // Website/App-specific fields
+  "Which website or app is your complaint about?": "network",
   "Please give the URL, or name of the app": "sourceurl",
-  "What is the programme title?": "programmetitle",
+
+  // Programme details
+  "What is the programme title?": "programme",
+  "What is the programme title?_id": "programmeid",
   "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
-  "How did you watch or listen to the programme?": "liveorondemand",
-  "Roughly how far into the programme did the issue happen?": "timestamp",
-
-  // Optionally, additional or alternate mappings
   "When did you first notice the problem?": "dateproblemstarted",
+  "How did you watch or listen to the programme?": "liveorondemand",
+  "Roughly how far into the programme did the issue happen?": "transmissiontime",
 
-  // ---- Newly added mappings ----
+  // Additional fields
   "What's the issue?": "redbuttonfault",
   "This helps us trace the problem": "platform",
   "If you know, what make or model is your set top box/smart TV?": "make",
-  "Case number of your previous complaint": "casenumber",
-  "Are you contacting us about a previous complaint?": "are_you_contacting_us_about_a_previous_complaint_",
-  "What is your complaint about?": "platform", // note: same key as above, update if needed
-  "Which radio station is your complaint about?": "serviceradio", // duplicate key—update as needed
-  "Which TV channel or service is your complaint about?": "servicetv", // duplicate key—update as needed
-  "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_", // duplicate key—update as needed
-  "What is the programme title?_id": "programmeid",
-  "What is the subject of your complaint?": "title",
-  "Roughly how far into the programme did the issue happen?": "transmissiontime"
+  "Case number of your previous complaint": "casenumber"
 };
 
-// 2) Cross-browser support
+// Cross-browser compatibility
 if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-// 3) Open init/init.html on install
+// Open init/init.html on install
 browser.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
     const initUrl = browser.runtime.getURL("init/init.html");
@@ -63,7 +67,7 @@ browser.runtime.onInstalled.addListener((details) => {
   }
 });
 
-// Utility: generate a random string of given length
+// Generate a random alphanumeric string of the given length
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -73,9 +77,9 @@ function generateRandomString(length) {
   return result;
 }
 
-// 4) Listen for messages from content scripts
+// Listen for messages from the content script
 browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  // Check if privacy policy is accepted
+  // Check if the privacy policy has been accepted
   let privacyPolicyAccepted = false;
   try {
     const result = await browser.storage.local.get("privacyPolicyAccepted");
@@ -84,106 +88,58 @@ browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     console.error("Error checking privacy policy status:", error);
   }
   if (!privacyPolicyAccepted) {
-    // Optionally, you could send a response or perform an action here
     return;
   }
 
-  switch (message.action) {
-    case "sendText": {
-      // BBC Complaints review extraction (e.g. from review tables)
-      const allReviewTableData = message.allReviewTableData;
-      const parsedData = { formData: {} };
+  // Retrieve the origin URL (if available) from the sender
+  const originUrl = sender?.tab?.url || "";
+
+  if (message.action === "sendText") {
+    const allReviewTableData = message.allReviewTableData;
+    console.log("Received allReviewTableData:", allReviewTableData);
+    console.log("Received message:", message);
+
+    // Create a container for the parsed data
+    let parsedData = {
+      where: message.where,
+      formData: {}
+    };
+
+    if (message.where === "IPSO") {
+      // For IPSO, use the data as provided
+      parsedData.formData = message.allReviewData;
+    } else if (message.where === "bbc") {
+      // Map the table data keys to form fields for BBC
       for (const key in allReviewTableData) {
         const mappedField = mapping_to_formData[key];
         if (mappedField) {
           parsedData.formData[mappedField] = allReviewTableData[key];
         } else {
+          // If no mapping is found, retain the original key
           parsedData.formData[key] = allReviewTableData[key];
         }
       }
+      // Append a captcha value
       parsedData.formData["captcha"] = "Chrome" + generateRandomString(64);
-      const originUrl = sender?.tab?.url || "";
-      console.log("Captured BBC review table data:", allReviewTableData);
-      console.log("Parsed data object:", parsedData);
-      console.log("Origin URL:", originUrl);
-      const dataToCopy = JSON.stringify(parsedData);
-      const confirmationUrl = `${browser.runtime.getURL("confirmation/confirmation.html")}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-      browser.tabs.create({ url: confirmationUrl }, (tab) => {
-        if (browser.runtime.lastError) {
-          console.error("Error creating tab:", browser.runtime.lastError);
-        } else {
-          console.log("Confirmation tab created:", tab);
-        }
-      });
-      sendResponse({ status: "success" });
-      break;
+    } else {
+      console.warn("Unknown message source:", message.where);
     }
 
-    case "scrapeReviewSubmission": {
-      // Police hate crime online review extraction (from .c-summary content)
-      const reviewData = message.data;
-      const parsedData = { formData: { ...reviewData } };
-      parsedData.formData["captcha"] = "Chrome" + generateRandomString(64);
-      const originUrl = sender?.tab?.url || "";
-      console.log("Captured police hate crime review data:", reviewData);
-      console.log("Parsed data object:", parsedData);
-      console.log("Origin URL:", originUrl);
-      const dataToCopy = JSON.stringify(parsedData);
-      const confirmationUrl = `${browser.runtime.getURL("confirmation/confirmation.html")}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-      browser.tabs.create({ url: confirmationUrl }, (tab) => {
-        if (browser.runtime.lastError) {
-          console.error("Error creating tab:", browser.runtime.lastError);
-        } else {
-          console.log("Confirmation tab created:", tab);
-        }
-      });
-      sendResponse({ status: "success" });
-      break;
-    }
+    // Convert the parsed data to a JSON string
+    const dataToCopy = JSON.stringify(parsedData);
 
-    case "scrapeFormSubmission": {
-      // Ofcom Salesforce Form submission extraction (covers BBCStandards, CSLEStandards, FairnessAndPrivacy)
-      const formData = message.data;
-      console.log("Received Ofcom form submission data:", formData);
-      const originUrl = sender?.tab?.url || "";
-      const dataToCopy = JSON.stringify({ formData });
-      const confirmationUrl = `${browser.runtime.getURL("confirmation/confirmation.html")}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-      browser.tabs.create({ url: confirmationUrl }, (tab) => {
-        if (browser.runtime.lastError) {
-          console.error("Error creating tab:", browser.runtime.lastError);
-        } else {
-          console.log("Confirmation tab created:", tab);
-        }
-      });
-      sendResponse({ status: "success" });
-      break;
-    }
+    // Construct the confirmation page URL with query parameters
+    const confirmationUrl = `${browser.runtime.getURL("confirmation/confirmation.html")}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
 
-    case "sendIPSOData": {
-      // IPSO extraction data
-      const ipsoData = {
-        contactInfo: message.contactInfo,
-        clauses: message.clauses,
-        complaints: message.complaints,
-      };
-      console.log("Received IPSO data:", ipsoData);
-      const originUrl = sender?.tab?.url || "";
-      const dataToCopy = JSON.stringify({ ipsoData });
-      const confirmationUrl = `${browser.runtime.getURL("confirmation/confirmation.html")}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
-      browser.tabs.create({ url: confirmationUrl }, (tab) => {
-        if (browser.runtime.lastError) {
-          console.error("Error creating tab:", browser.runtime.lastError);
-        } else {
-          console.log("Confirmation tab created:", tab);
-        }
-      });
-      sendResponse({ status: "success" });
-      break;
-    }
+    // Open the confirmation page in a new tab
+    browser.tabs.create({ url: confirmationUrl }, (tab) => {
+      if (browser.runtime.lastError) {
+        console.error("Error creating confirmation tab:", browser.runtime.lastError);
+      } else {
+        console.log("Confirmation tab created successfully:", tab);
+      }
+    });
 
-    default:
-      console.log("Unknown action in message:", message.action);
-      break;
+    sendResponse({ status: "success" });
   }
-  // No need to return true because we're using async functions.
 });
