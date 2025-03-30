@@ -271,15 +271,31 @@ async function sendDataToServer(selectedData) {
       handleSuccess(responseData.id);
 
       // Store BBC complaints in local storage
-      chrome.storage.local.get("bbcComplaints", (result) => {
-        const bbcComplaints = result.bbcComplaints || [];
-        bbcComplaints.push({
-          subject: selectedData.title,
-          id: responseData.id,
-          dateRetrieved: Date.now(),
+      if (complaintType === "BBC") {
+        chrome.storage.local.get("bbcComplaints", (result) => {
+          const bbcComplaints = result.bbcComplaints || [];
+          bbcComplaints.push({
+            where:complaintType,
+            subject: selectedData.title,
+            id: responseData.id,
+            dateRetrieved: Date.now(),
+          });
+          chrome.storage.local.set({ bbcComplaints });
         });
-        chrome.storage.local.set({ bbcComplaints });
-      });
+      }
+      else if (complaintType === "IPSO") {
+        // Store IPSO complaints in local storage
+        chrome.storage.local.get("bbcComplaints", (result) => {
+          const ipsoComplaints = result.ipsoComplaints || [];
+          ipsoComplaints.push({
+            where:complaintType,
+            subject: selectedData.complaintDetails.title,
+            id: responseData.id,
+            dateRetrieved: Date.now(),
+          });
+          chrome.storage.local.set({ ipsoComplaints });
+        });
+      }
     });
   } catch (error) {
     console.error("Error sending data:", error);

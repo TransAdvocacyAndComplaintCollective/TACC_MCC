@@ -1,5 +1,3 @@
-// popup.js
-
 // Use the chrome API for compatibility
 if (typeof browser === "undefined") {
   var browser = chrome;
@@ -94,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (complaints.length === 0) {
       const placeholderRow = document.createElement("tr");
       const placeholderCell = document.createElement("td");
-      placeholderCell.colSpan = 5;
+      placeholderCell.colSpan = 6;
       placeholderCell.textContent = "No complaints stored.";
       placeholderRow.appendChild(placeholderCell);
       tableBody.appendChild(placeholderRow);
@@ -116,6 +114,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       idLink.target = "_blank";
       idCell.appendChild(idLink);
       row.appendChild(idCell);
+      // Where (complaint type)
+      const whereCell = document.createElement("td");
+      whereCell.textContent = complaint.where || "N/A";
+      row.appendChild(whereCell);
       // Source
       const sourceCell = document.createElement("td");
       sourceCell.textContent = complaint.source ? complaint.source.toUpperCase() : "Unknown";
