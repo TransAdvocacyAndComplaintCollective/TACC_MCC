@@ -1,6 +1,6 @@
 {
   "name": "TACC Media Complaints Collector",
-  "version": "0.1.1",
+  "version": "2.0.0",
   "manifest_version": 3,
   "description": "TACC media complaints collector requests from British news sites and forwards the data to TACC.",
   "permissions": ["activeTab", "storage", "notifications"],

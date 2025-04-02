@@ -108,7 +108,7 @@ browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (message.where === "IPSO") {
       // For IPSO, use the data as provided
       parsedData.formData = message.allReviewData;
-    } else if (message.where === "bbc") {
+    } else if (message.where === "BBC") {
       // Map the table data keys to form fields for BBC
       for (const key in allReviewTableData) {
         const mappedField = mapping_to_formData[key];

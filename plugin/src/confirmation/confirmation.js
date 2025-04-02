@@ -114,9 +114,7 @@ let complaintType = null; // "BBC" or "IPSO"
 
 // Helper function to create a checkbox with a label
 function createFieldCheckbox(field, valueExists, type = "BBC") {
-  // Select proper field mapping based on complaint type
   const fieldMapping = type === "IPSO" ? fieldDetailsIPSO : fieldDetailsBBC;
-
   const label = document.createElement("label");
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
@@ -125,11 +123,9 @@ function createFieldCheckbox(field, valueExists, type = "BBC") {
   checkbox.value = "true";
   checkbox.disabled = !fieldMapping[field]?.optional; // disable if not optional
   checkbox.checked = Boolean(valueExists);
-
   label.appendChild(checkbox);
   const fieldName = fieldMapping[field]?.name || field;
   label.appendChild(document.createTextNode(` ${fieldName}`));
-
   if (fieldMapping[field]?.optional) {
     const optionalSpan = document.createElement("span");
     optionalSpan.className = "optional";
@@ -145,6 +141,8 @@ function initializeFieldSelection(dataObj, type) {
   form.innerHTML = ""; // clear previous content
 
   if (type === "IPSO") {
+    const c = document.querySelector(".notification")
+    c.style.display = "none";
     if (dataObj.contactDetails) {
       fieldsIPSO.forEach((field) => {
         if (dataObj.contactDetails.hasOwnProperty(field)) {
@@ -179,7 +177,7 @@ function displayContent(content, isError = false) {
   dataContentEl.style.color = isError ? "red" : "black";
 }
 
-// Handle UI changes after a successful submission
+// Handle successful submission – updates the UI to show success and a complaint ID.
 function handleSuccess(complaintId) {
   const fieldSelection = document.querySelector(".field-selection");
   if (fieldSelection) fieldSelection.style.display = "none";
@@ -217,10 +215,29 @@ function handleSuccess(complaintId) {
   dataContentEl.appendChild(document.createElement("br"));
 }
 
+// NEW: Handle errors by showing a message in the HTML and updating buttons.
+function handleError(errorMessage) {
+  const dataContentEl = document.getElementById("dataContent");
+  dataContentEl.innerHTML = "";
+  const errorSpan = document.createElement("span");
+  errorSpan.style.color = "red";
+  // Use a generic message if no specific error message is provided.
+  errorSpan.textContent = errorMessage || "An error occurred. Please try again later.";
+  dataContentEl.appendChild(errorSpan);
+
+  // Disable the send button and change the cancel button to act as a Return button.
+  const sendBtn = document.getElementById("sendBtn");
+  sendBtn.disabled = true;
+  sendBtn.style.display = "none";
+
+  const cancelBtn = document.getElementById("cancelBtn");
+  cancelBtn.textContent = "Return";
+  cancelBtn.style.backgroundColor = "#4caf50";
+}
+
 // Gather selected fields from the form based on complaint type
 function getSelectedData(type) {
   const selectedData = {};
-
   if (type === "IPSO") {
     selectedData.contactDetails = {};
     fieldsIPSO.forEach((field) => {
@@ -248,58 +265,102 @@ function getSelectedData(type) {
   return selectedData;
 }
 
-// Send selected data to the server
+
+// Send selected data to the server with updated error handling.
+// Send selected data to the server with enhanced error handling.
 async function sendDataToServer(selectedData) {
   try {
-    chrome.storage.local.get("privacyPolicyAccepted", async (result) => {
-      const privacyPolicyAccepted = result.privacyPolicyAccepted;
-      const response = await fetch("https://www.tacc.org.uk/api/intercept/v2", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          where: complaintType,
-          originUrl: selectedData.originUrl,
-          interceptedData: selectedData,
-          privacyPolicyAccepted: privacyPolicyAccepted,
-        }),
+    // Wrap chrome.storage.local.get in a Promise to catch errors.
+    const getPrivacyPolicyAccepted = () =>
+      new Promise((resolve, reject) => {
+        chrome.storage.local.get("privacyPolicyAccepted", (result) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(result.privacyPolicyAccepted);
+          }
+        });
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to send data. Please try again.");
-      }
-      const responseData = await response.json();
-      handleSuccess(responseData.id);
+    const privacyPolicyAccepted = await getPrivacyPolicyAccepted();
+    if (typeof privacyPolicyAccepted === "undefined") {
+      throw new Error("Privacy policy acceptance not found.");
+    }
 
-      // Store BBC complaints in local storage
-      if (complaintType === "BBC") {
-        chrome.storage.local.get("bbcComplaints", (result) => {
-          const bbcComplaints = result.bbcComplaints || [];
-          bbcComplaints.push({
-            where:complaintType,
-            subject: selectedData.title,
-            id: responseData.id,
-            dateRetrieved: Date.now(),
-          });
-          chrome.storage.local.set({ bbcComplaints });
-        });
-      }
-      else if (complaintType === "IPSO") {
-        // Store IPSO complaints in local storage
-        chrome.storage.local.get("bbcComplaints", (result) => {
-          const ipsoComplaints = result.ipsoComplaints || [];
-          ipsoComplaints.push({
-            where:complaintType,
-            subject: selectedData.complaintDetails.title,
-            id: responseData.id,
-            dateRetrieved: Date.now(),
-          });
-          chrome.storage.local.set({ ipsoComplaints });
-        });
-      }
+    // Make the POST request.
+    const response = await fetch("https://www.tacc.org.uk/api/intercept/v2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        where: complaintType,
+        originUrl: selectedData.originUrl,
+        interceptedData: selectedData,
+        privacyPolicyAccepted: privacyPolicyAccepted,
+      }),
     });
+
+    // If response is not OK, try to extract an error message from the response.
+    if (!response.ok) {
+      let errorResponse;
+      try {
+        errorResponse = await response.json();
+      } catch (e) {
+        // Ignore JSON parse errors.
+      }
+      const errorMessage =
+        (errorResponse && errorResponse.error) ||
+        "Failed to send data. Please try again later.";
+      handleError(errorMessage);
+      return;
+    }
+
+    // For a successful response, parse the data and update the UI.
+    const responseData = await response.json();
+    handleSuccess(responseData.id);
+
+    // Helper function to wrap chrome.storage.local.get in a Promise.
+    const getComplaints = (key) =>
+      new Promise((resolve, reject) => {
+        chrome.storage.local.get(key, (result) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(result[key] || []);
+          }
+        });
+      });
+
+    // Store BBC or IPSO complaints in local storage.
+    if (complaintType === "BBC") {
+      const bbcComplaints = await getComplaints("bbcComplaints");
+      bbcComplaints.push({
+        where: complaintType,
+        subject: selectedData.title,
+        id: responseData.id,
+        dateRetrieved: Date.now(),
+      });
+      chrome.storage.local.set({ bbcComplaints }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Error storing BBC complaints:", chrome.runtime.lastError);
+        }
+      });
+    } else if (complaintType === "IPSO") {
+      const ipsoComplaints = await getComplaints("ipsoComplaints");
+      ipsoComplaints.push({
+        where: complaintType,
+        subject: selectedData.complaintDetails.title,
+        id: responseData.id,
+        dateRetrieved: Date.now(),
+      });
+      chrome.storage.local.set({ ipsoComplaints }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Error storing IPSO complaints:", chrome.runtime.lastError);
+        }
+      });
+    }
   } catch (error) {
     console.error("Error sending data:", error);
-    alert("An error occurred while sending data.");
+    handleError(error.message);
   }
 }
 

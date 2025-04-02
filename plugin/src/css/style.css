@@ -146,3 +146,14 @@ button {
     border: 1px solid lightgray;
     border-radius: 0.375rem;
 }
+#privacyButton {
+    /* set button to #ff474c with black text*/
+    background-color:  #ff474c;
+    color: black;
+}
+/* when the button is hover over*/
+#privacyButton:hover {
+    /* background color lightgreen with black text */
+    background-color: lightgreen;
+    color: black;
+}

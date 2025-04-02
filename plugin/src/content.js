@@ -2,7 +2,7 @@
 
 // Define browser for compatibility (Chrome only)
 const browser = chrome;
-
+let count_page = 0;
 // Extraction flags to ensure extraction happens only once per website
 let bbcExtractionDone = false;
 let ipsoExtractionDone = false;
@@ -30,62 +30,78 @@ function sendMessageToBackground(message) {
  * Extracts review table data from BBC pages.
  */
 function extractReviewTableDataBBC() {
-  if (bbcExtractionDone) return; // Prevent reprocessing
-  console.log("extractReviewTableDataBBC invoked.");
-
+  console.log("[extractAllReviewTableData] Function invoked.");
   const reviewTables = document.querySelectorAll('.review-table');
-  console.log("Found", reviewTables.length, "review table(s).");
+  console.log("[extractAllReviewTableData] Number of review tables found:", reviewTables.length);
+  console.log("[extractAllReviewTableData] Current count_page before processing:", count_page);
 
-  if (reviewTables.length < 4) {
-    console.log(
-      `Not enough review tables found (found ${reviewTables.length}, expecting at least 4). Waiting for further changes.`
-    );
-    return;
-  }
+  if (reviewTables.length > 0) {
+    // Increment the counter when review tables are found
+    count_page++;
+    console.log("[extractAllReviewTableData] Incremented count_page to:", count_page);
 
-  const allReviewTableData = {};
-
-  reviewTables.forEach((table, tableIndex) => {
-    console.log(`Processing table ${tableIndex + 1} of ${reviewTables.length}`);
-    const rows = table.querySelectorAll('tr');
-    console.log(`Number of rows found in table ${tableIndex + 1}:`, rows.length);
-
-    if (!rows.length) {
-      console.log(`Table ${tableIndex + 1} has no rows; skipping.`);
+    // Only proceed to send data when count_page === 4
+    if (count_page !== 4) {
+      console.log("[extractAllReviewTableData] count_page is not 4 yet, waiting for further changes.");
       return;
     }
 
-    const firstRowCells = rows[0].querySelectorAll('th, td');
-    if (firstRowCells.length === 2) {
-      rows.forEach((row, rowIndex) => {
-        const cells = row.querySelectorAll('th, td');
-        if (cells.length === 2) {
-          const key = cells[0].innerText.trim();
-          const value = cells[1].innerText.trim();
-          console.log(`Table ${tableIndex + 1}, row ${rowIndex + 1}: key = "${key}", value = "${value}"`);
-          allReviewTableData[key] = value;
-        } else {
-          console.warn(`Table ${tableIndex + 1}, row ${rowIndex + 1} does not have exactly 2 cells.`);
-        }
-      });
-    } else {
-      // Process rows in pairs if not in key/value pair format
-      for (let i = 0; i < rows.length; i += 2) {
-        const keyRow = rows[i];
-        const valueRow = rows[i + 1];
-        const key = keyRow ? keyRow.innerText.trim() : "";
-        const value = valueRow ? valueRow.innerText.trim() : "";
-        console.log(`Table ${tableIndex + 1}, rows ${i + 1} & ${i + 2}: key = "${key}", value = "${value}"`);
-        if (key) {
-          allReviewTableData[key] = value;
+    // Build an object to hold data from all review tables
+    const allReviewTableData = {};
+
+    // Iterate over each review table on the page
+    reviewTables.forEach((table, tableIndex) => {
+      console.log(`[extractAllReviewTableData] Processing table ${tableIndex + 1} of ${reviewTables.length}`);
+      const rows = table.querySelectorAll('tr');
+      console.log(`[extractAllReviewTableData] Number of rows found in table ${tableIndex + 1}: ${rows.length}`);
+
+      if (rows.length === 0) {
+        console.log(`[extractAllReviewTableData] Table ${tableIndex + 1} has no rows; skipping.`);
+        return;
+      }
+
+      // Determine the table's structure:
+      // • If the first row contains two cells, assume each row is a key/value pair.
+      // • Otherwise, assume rows come in pairs: one for the key and the next for the value.
+      const firstRowCells = rows[0].querySelectorAll('th, td');
+      if (firstRowCells.length === 2) {
+        // Process each row as a key/value pair.
+        rows.forEach((row, rowIndex) => {
+          const cells = row.querySelectorAll('th, td');
+          if (cells.length === 2) {
+            const key = cells[0].innerText.trim();
+            const value = cells[1].innerText.trim();
+            console.log(`[extractAllReviewTableData] Table ${tableIndex + 1}, row ${rowIndex + 1}: Extracted key: "${key}", value: "${value}"`);
+            allReviewTableData[key] = value;
+          } else {
+            console.log(`[extractAllReviewTableData] Table ${tableIndex + 1}, row ${rowIndex + 1}: Not enough cells.`);
+          }
+        });
+      } else {
+        // Assume rows are in pairs: first row contains the key, and the next row contains the value.
+        for (let i = 0; i < rows.length; i += 2) {
+          const keyRow = rows[i];
+          const valueRow = rows[i + 1];
+          const key = keyRow ? keyRow.innerText.trim() : "";
+          const value = valueRow ? valueRow.innerText.trim() : "";
+          console.log(`[extractAllReviewTableData] Table ${tableIndex + 1}, rows ${i + 1} & ${i + 2}: Extracted key: "${key}", value: "${value}"`);
+          if (key) {
+            allReviewTableData[key] = value;
+          }
         }
       }
-    }
-  });
+    });
 
-  bbcExtractionDone = true;
-  console.log("BBC extraction complete. Data:", allReviewTableData);
-  sendMessageToBackground({ action: "sendText", allReviewTableData, where: "BBC" });
+    // Once data is gathered, disconnect the observer so we don’t process further changes
+    if (observer) {
+      observer.disconnect();
+      console.log("[extractAllReviewTableData] DOM observer disconnected after processing.");
+    }
+
+    sendMessageToBackground({ action: "sendText", allReviewTableData, where: "BBC" });
+  } else {
+    console.warn("[extractAllReviewTableData] No review tables found on this page.");;
+  }
 }
 
 /**
