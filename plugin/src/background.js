@@ -1,87 +1,59 @@
 // background.js
 
-// 1) Mapping the table row labels to your chosen internal field names
-const mapping_to_formData = {  
-  // Existing mappings (examples—rename the right side fields as you see fit)
+// Mapping table row labels to internal field names
+const mapping_to_formData = {
   // Complaint
-  "What is your complaint about?": "generalissue1",
-  "Are you contacting us about a previous complaint?": "previous_complaint",
+  "What is your complaint about?": "platform",
+  "Are you contacting us about a previous complaint?": "are_you_contacting_us_about_a_previous_complaint_",
 
   // Your Complaint
-  "Select the best category to describe your complaint": "complaint_category",
-  "What is the subject of your complaint?": "subject",
+  "Select the best category to describe your complaint": "generalissue1",
+  "What is the subject of your complaint?": "title",
   "Do you require a response to your complaint?": "responserequired",
   "Please enter your complaint, and please don’t add personal details such as your name, email or phone number in this field – we’ll ask you for those at the next stage": "description",
+  "Please enter your complaint": "description",
 
   // Your Details
-  "Location": "location",
+  "Location": "region", // Using region instead of location for consistency
   "Title (i.e. Mr, Ms etc.)": "salutation",
   "First Name": "firstname",
   "Last Name": "lastname",
   "Email address": "emailaddress",
+  "Email Address": "emailaddress",
   "Are you under 18?": "under18",
 
-  // TV-specific fields (if needed)
-  "Which TV channel or service is your complaint about?": "tvchannel",
+  // TV-specific fields
+  "Which TV channel or service is your complaint about?": "servicetv",
 
   // Radio / BBC Sounds-specific fields
-  "What is the nature of your complaint?": "complaint_nature_sounds",
-  "Which radio station is your complaint about?": "radio_station",
-  "Please enter your local radio station": "localradio",
+  "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_",
+  "Which radio station is your complaint about?": "serviceradio",
 
   // Website/App-specific fields
-  "Which website or app is your complaint about?": "bbcwebsite_app",
+  "Which website or app is your complaint about?": "network",
   "Please give the URL, or name of the app": "sourceurl",
 
   // Programme details
-  "What is the programme title?": "programmetitle",
-  "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
-  "How did you watch or listen to the programme?": "liveorondemand",
-  "Roughly how far into the programme did the issue happen?": "timestamp",
-
-  // Optionally keep placeholders for unused or future fields
-  "Location": "region",
-  "When did you first notice the problem?": "dateproblemstarted",
-  "Please enter your local radio station": "network",
-  "Which website or app is your complaint about?": "network",
-
-
-  // ---- Newly added mappings ----
-  "Please enter your local radio station": "network",
-  "What's the issue?": "redbuttonfault",
-  "This helps us trace the problem": "platform",
-  "Which radio station is your complaint about?": "network",
-  "Which TV channel or service is your complaint about?": "network",
-  "Which website or app is your complaint about?": "network",
-  "If you know, what make or model is your set top box/smart TV?": "make",
-  "Please enter your complaint": "description",
-  "How did you watch or listen to the programme?": "liveorondemand",
-  "Case number of your previous complaint": "casenumber",
-  "Email Address": "emailaddress",
-  "Are you contacting us about a previous complaint?": "are_you_contacting_us_about_a_previous_complaint_",
-  "When did you first notice the problem?": "dateproblemstarted",
-  "What is your complaint about?": "platform",
-  "Which radio station is your complaint about?": "serviceradio",
-  "Which TV channel or service is your complaint about?": "servicetv",
-  "Please give the URL, or name of the app": "sourceurl",
-  "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_",
-  // If separate mapping needed for sounds context, uncomment the next line:
-  // "What is the nature of your complaint?": "what_is_the_nature_of_your_complaint_sounds",
-  "Select the best category to describe your complaint": "generalissue1",
   "What is the programme title?": "programme",
   "What is the programme title?_id": "programmeid",
-  "What is the subject of your complaint?": "title",
   "When was it broadcast? (dd/mm/yyyy)": "transmissiondate",
+  "When did you first notice the problem?": "dateproblemstarted",
+  "How did you watch or listen to the programme?": "liveorondemand",
   "Roughly how far into the programme did the issue happen?": "transmissiontime",
-  "Are you under 18?": "under18"
+
+  // Additional fields
+  "What's the issue?": "redbuttonfault",
+  "This helps us trace the problem": "platform",
+  "If you know, what make or model is your set top box/smart TV?": "make",
+  "Case number of your previous complaint": "casenumber"
 };
 
-// 2) For cross-browser compatibility (optional)
+// Cross-browser compatibility
 if (typeof browser === "undefined") {
   var browser = chrome;
 }
 
-// 3) Open init/init.html on install
+// Open init/init.html on install
 browser.runtime.onInstalled.addListener((details) => {
   if (details.reason === "install") {
     const initUrl = browser.runtime.getURL("init/init.html");
@@ -95,17 +67,19 @@ browser.runtime.onInstalled.addListener((details) => {
   }
 });
 
+// Generate a random alphanumeric string of the given length
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
   for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
 }
 
-// 4) Listen for messages from the content script
+// Listen for messages from the content script
 browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  // Check if the privacy policy has been accepted
   let privacyPolicyAccepted = false;
   try {
     const result = await browser.storage.local.get("privacyPolicyAccepted");
@@ -113,61 +87,59 @@ browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   } catch (error) {
     console.error("Error checking privacy policy status:", error);
   }
-  if (privacyPolicyAccepted === false) {
+  if (!privacyPolicyAccepted) {
     return;
   }
 
+  // Retrieve the origin URL (if available) from the sender
+  const originUrl = sender?.tab?.url || "";
 
   if (message.action === "sendText") {
     const allReviewTableData = message.allReviewTableData;
+    console.log("Received allReviewTableData:", allReviewTableData);
+    console.log("Received message:", message);
 
-    // Create a container object for the parsed data
-    const parsedData = {
-      // Optionally store the raw table data for reference
-      formData: {},
+    // Create a container for the parsed data
+    let parsedData = {
+      where: message.where,
+      formData: {}
     };
 
-    // 5) Map the table data keys to your form fields
-    for (const key in allReviewTableData) {
-      const mappedField = mapping_to_formData[key];
-      if (mappedField) {
-        // If we have a known mapping, place it under that field name
-        parsedData.formData[mappedField] = allReviewTableData[key];
-      } else {
-        // If no mapping is found, store under the original key
-        parsedData.formData[key] = allReviewTableData[key];
+    if (message.where === "IPSO") {
+      // For IPSO, use the data as provided
+      parsedData.formData = message.allReviewData;
+    } else if (message.where === "BBC") {
+      // Map the table data keys to form fields for BBC
+      for (const key in allReviewTableData) {
+        const mappedField = mapping_to_formData[key];
+        if (mappedField) {
+          parsedData.formData[mappedField] = allReviewTableData[key];
+        } else {
+          // If no mapping is found, retain the original key
+          parsedData.formData[key] = allReviewTableData[key];
+        }
       }
+      // Append a captcha value
+      parsedData.formData["captcha"] = "Chrome" + generateRandomString(64);
+    } else {
+      console.warn("Unknown message source:", message.where);
     }
-    parsedData.formData["captcha"] =  "Chrome" + generateRandomString(64);
 
-    // 6) Grab the page URL from the sender.tab object (optional)
-    const originUrl = sender?.tab?.url ? sender.tab.url : "";
-
-    // Log for debugging (optional)
-    console.log("Captured Review Table Data:", allReviewTableData);
-    console.log("parsedData object:", parsedData);
-    console.log("URL of the page:", originUrl);
-
-    // 7) Convert your parsedData to a JSON string
+    // Convert the parsed data to a JSON string
     const dataToCopy = JSON.stringify(parsedData);
 
-    // 8) Construct the confirmation page URL
-    const confirmationUrl = `${browser.runtime.getURL(
-      "confirmation/confirmation.html"
-    )}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
+    // Construct the confirmation page URL with query parameters
+    const confirmationUrl = `${browser.runtime.getURL("confirmation/confirmation.html")}?originUrl=${encodeURIComponent(originUrl)}&data=${encodeURIComponent(dataToCopy)}`;
 
-    // 9) Open the confirmation page in a new tab
+    // Open the confirmation page in a new tab
     browser.tabs.create({ url: confirmationUrl }, (tab) => {
       if (browser.runtime.lastError) {
-        console.error("Error creating tab:", browser.runtime.lastError);
+        console.error("Error creating confirmation tab:", browser.runtime.lastError);
       } else {
-        console.log("Tab created successfully:", tab);
+        console.log("Confirmation tab created successfully:", tab);
       }
     });
 
-    // 10) Finally, send a success response back to the content script
     sendResponse({ status: "success" });
   }
-
-  // Since we're using an async listener, no need to return true here.
 });
