@@ -114,10 +114,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       idLink.target = "_blank";
       idCell.appendChild(idLink);
       row.appendChild(idCell);
-      // Where (complaint type)
-      const whereCell = document.createElement("td");
-      whereCell.textContent = complaint.where || "N/A";
-      row.appendChild(whereCell);
       // Source
       const sourceCell = document.createElement("td");
       sourceCell.textContent = complaint.source ? complaint.source.toUpperCase() : "Unknown";

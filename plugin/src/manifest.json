@@ -3,17 +3,14 @@
   "version": "2.0.0",
   "manifest_version": 3,
   "description": "TACC media complaints collector requests from British news sites and forwards the data to TACC.",
-  "permissions": ["activeTab", "storage", "notifications"],
+  "permissions": ["storage"],
   "host_permissions": [
-    "https://tackpckfdc.execute-api.eu-west-1.amazonaws.com/live/sendmessage",
-    "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup/popup.html",
-    "default_area": "navbar",
     "default_icon": {
       "16": "icons/image-16.png",
       "48": "icons/image-48.png"
@@ -25,7 +22,10 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*",
+        "https://www.ipso.co.uk/making-a-complaint/*"
+       ],
       "js": ["content.js"]
     }
   ],
