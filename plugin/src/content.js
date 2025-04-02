@@ -1,9 +1,36 @@
-// Global counter for how many times review tables were detected
-let count_page = 0;
-let observer; // We'll store the MutationObserver here
+'use strict';
 
-// Function to extract data from all review tables and send it to the background script
-function extractAllReviewTableData() {
+// Define browser for compatibility (Chrome only)
+const browser = chrome;
+let count_page = 0;
+// Extraction flags to ensure extraction happens only once per website
+let bbcExtractionDone = false;
+let ipsoExtractionDone = false;
+let ofcomExtractionDone = false;
+
+/**
+ * Sends a message to the background script.
+ * @param {Object} message - The message to send.
+ */
+function sendMessageToBackground(message) {
+  if (chrome?.runtime?.sendMessage) {
+    chrome.runtime.sendMessage(message, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error sending message:", chrome.runtime.lastError);
+      } else {
+        console.log("Background response received:", response);
+      }
+    });
+  } else {
+    console.warn("chrome.runtime.sendMessage is not available in this context.");
+  }
+}
+
+/**
+ * Extracts review table data from BBC pages.
+ */
+function extractReviewTableDataBBC() {
+
   console.log("[extractAllReviewTableData] Function invoked.");
   const reviewTables = document.querySelectorAll('.review-table');
   console.log("[extractAllReviewTableData] Number of review tables found:", reviewTables.length);
@@ -72,49 +99,106 @@ function extractAllReviewTableData() {
       console.log("[extractAllReviewTableData] DOM observer disconnected after processing.");
     }
 
-    // Safely check for chrome.runtime before sending the message
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-      console.log("[extractAllReviewTableData] Sending data to background script:", allReviewTableData);
-      chrome.runtime.sendMessage(
-        {
-          action: "sendText",
-          allReviewTableData: allReviewTableData,
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error("[extractAllReviewTableData] Error sending message:", chrome.runtime.lastError);
-          } else {
-            console.log("[extractAllReviewTableData] Background response received:", response);
-          }
-        }
-      );
-    } else {
-      console.warn("[extractAllReviewTableData] chrome.runtime.sendMessage is not available in this context.");
-    }
+    sendMessageToBackground({ action: "sendText", allReviewTableData, where: "BBC" });
   } else {
-    console.warn("[extractAllReviewTableData] No review tables found on this page.");
-    // (Optional) Reset count_page here if needed:
-    // count_page = 0;
+    console.warn("[extractAllReviewTableData] No review tables found on this page.");;
   }
 }
 
-// Observe DOM changes and run extractAllReviewTableData whenever the DOM updates
-function observeDOMChanges() {
-  observer = new MutationObserver((mutations, obs) => {
-    console.log(`[observeDOMChanges] MutationObserver triggered with ${mutations.length} mutation(s).`);
-    mutations.forEach((mutation, index) => {
-      console.log(`[observeDOMChanges] Mutation ${index + 1}:`, mutation);
-    });
-    extractAllReviewTableData();
+/**
+ * Extracts review data from IPSO pages.
+ */
+function extractReviewDataIPSO() {
+  if (ipsoExtractionDone) return; // Prevent reprocessing
+  console.log("extractReviewDataIPSO invoked.");
+
+  const complaintDetails = {};
+  const codeBreaches = [];
+  const contactDetails = {};
+
+  const fieldsets = document.querySelectorAll("fieldset.field-group");
+  fieldsets.forEach((fs) => {
+    const legend = fs.querySelector("legend");
+    if (!legend) return;
+    const legendText = legend.innerText.trim();
+
+    if (legendText.includes("Here's what you've told us:")) {
+      // Extract complaint details
+      const titleEl = fs.querySelector(".review-title");
+      if (titleEl) {
+        complaintDetails.title = titleEl.innerText.trim();
+      }
+      const reviewFields = fs.querySelectorAll(".review-field .review-field__content p");
+      complaintDetails.fields = [];
+      reviewFields.forEach((p) => {
+        complaintDetails.fields.push(p.innerText.trim());
+      });
+    } else if (legendText.includes("You believe the complaints breach")) {
+      // Extract code breaches
+      const breachItems = fs.querySelectorAll(".code-breaches__item");
+      breachItems.forEach((item) => {
+        const clauseName = item.querySelector(".code-breaches__item-name")?.innerText.trim() || "";
+        const clauseText = item.querySelector(".code-breaches__item-content-text")?.innerText.trim() || "";
+        if (clauseName) {
+          codeBreaches.push({ clause: clauseName, details: clauseText });
+        }
+      });
+    } else if (legendText.includes("Let us know how to contact you")) {
+      // Extract contact details
+      const inputs = fs.querySelectorAll("input");
+      inputs.forEach((input) => {
+        if (input.id) {
+          contactDetails[input.id] = input.value.trim();
+        }
+      });
+      const checkbox = fs.querySelector("input[type='checkbox'][id='terms-and-conditions']");
+      contactDetails["terms-and-conditions"] = checkbox ? checkbox.checked : false;
+    }
   });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
-  console.log("[observeDOMChanges] MutationObserver initialized and observing DOM changes.");
+  const allReviewData = { complaintDetails, codeBreaches, contactDetails };
+  ipsoExtractionDone = true;
+  console.log("IPSO extraction complete. Data:", allReviewData);
+  sendMessageToBackground({ action: "sendText", allReviewData, where: "IPSO" });
 }
 
-// Initialize observation when the content script loads
-console.log("[Main] Content script loaded. Starting DOM observation.");
-observeDOMChanges();
+/**
+ * Placeholder for Ofcom data extraction.
+ */
+function extractReviewDataOFCOM() {
+  if (ofcomExtractionDone) return;
+  console.log("extractReviewDataOFCOM invoked. Extraction logic not implemented.");
+  ofcomExtractionDone = true;
+  // TODO: Implement Ofcom extraction logic here
+}
+
+const config = { attributes: true, childList: true, subtree: true };
+const observer = new MutationObserver((mutationsList, observer) => {
+  console.log("Mutation observed.");
+  const host = window.location.host;
+  const pathname = window.location.pathname;
+  console.log("Host:", host);
+  console.log("Pathname:", pathname);
+  if (host === "www.bbc.co.uk") {
+    extractReviewTableDataBBC();
+  }
+  if (host === "www.ipso.co.uk" && pathname === "/making-a-complaint/step-5") {
+    let count = 0;
+    const config2 = { attributes: true, childList: true, subtree: true };
+    const observer2 = new MutationObserver((mutationsList, observer) => {
+      if (count < 1) {
+        count = count + 1;
+        return;
+      }
+      extractReviewDataIPSO();
+    });
+    const btn = document.querySelector('.btn.btn--primary-blue');
+    observer2.observe(btn, config2);
+  }
+  if (host === "www.ofcom.org.uk") {
+    extractReviewDataOFCOM();
+  }
+});
+
+observer.observe(document.body, config);
+
