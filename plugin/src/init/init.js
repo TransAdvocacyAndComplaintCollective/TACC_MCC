@@ -48,9 +48,9 @@ function handlePrivacyPolicyClick(event) {
         event.target.textContent = 'Privacy Policy Accepted';
         // Navigate to /help/help.html
         window.location.href = '/help/help.html';
+
     });
 }
-
 // Add event listener after DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     const privacyButton = document.getElementById('privacyButton');
@@ -66,3 +66,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Attach the event listener to the button
     privacyButton.addEventListener('click', handlePrivacyPolicyClick);
 });
+
