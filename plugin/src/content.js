@@ -30,6 +30,7 @@ function sendMessageToBackground(message) {
  * Extracts review table data from BBC pages.
  */
 function extractReviewTableDataBBC() {
+
   console.log("[extractAllReviewTableData] Function invoked.");
   const reviewTables = document.querySelectorAll('.review-table');
   console.log("[extractAllReviewTableData] Number of review tables found:", reviewTables.length);
@@ -200,3 +201,4 @@ const observer = new MutationObserver((mutationsList, observer) => {
 });
 
 observer.observe(document.body, config);
+
