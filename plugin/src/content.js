@@ -42,7 +42,7 @@ function extractReviewTableDataBBC() {
     console.log("[extractAllReviewTableData] Incremented count_page to:", count_page);
 
     // Only proceed to send data when count_page === 4
-    if (count_page !== 4) {
+    if (count_page !== 3) {
       console.log("[extractAllReviewTableData] count_page is not 4 yet, waiting for further changes.");
       return;
     }

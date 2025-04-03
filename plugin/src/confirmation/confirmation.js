@@ -1,5 +1,5 @@
 "use strict";
-
+console.log("[extractAllReviewTableData] No review tables found.");
 // Define fields for IPSO and BBC complaints.
 const fieldsIPSO = [
   "email_address",
@@ -89,13 +89,15 @@ const fieldDetailsBBC = {
   complaint_nature_sounds: { name: "Complaint Nature (Sounds)", optional: false },
 };
 
-// For Chrome compatibility
-const browser = chrome;
+// Use the Firefox extension API (or fallback to chrome if needed)
+const extension = (typeof browser !== "undefined") ? browser : chrome;
 
 // Retrieve URL parameters
 const urlParams = new URLSearchParams(window.location.search);
+console.log("URL Parameters:", urlParams.toString());
 const originUrl = urlParams.get("originUrl");
 let rawData = urlParams.get("data");
+console.log("urlParams", urlParams);
 
 let data = null;
 if (rawData) {
@@ -109,7 +111,9 @@ if (rawData) {
 
 // Global variables to store parsed data and complaint type
 let parsedData = {};
+// pass json into the formData variable
 let formData = {};
+// Initialize complaintType to null
 let complaintType = null; // "BBC" or "IPSO"
 
 // Helper function to create a checkbox with a label
@@ -142,7 +146,7 @@ function initializeFieldSelection(dataObj, type) {
 
   if (type === "IPSO") {
     const c = document.querySelector(".notification")
-    c.style.display = "none";
+    if (c) { c.style.display = "none"; }
     if (dataObj.contactDetails) {
       fieldsIPSO.forEach((field) => {
         if (dataObj.contactDetails.hasOwnProperty(field)) {
@@ -265,24 +269,21 @@ function getSelectedData(type) {
   return selectedData;
 }
 
+// Helper to get stored values using the Promise-based API
+async function getStorageValue(key) {
+  try {
+    const result = await extension.storage.local.get(key);
+    return result[key];
+  } catch (error) {
+    console.error("Error accessing storage:", error);
+    throw error;
+  }
+}
 
-// Send selected data to the server with updated error handling.
 // Send selected data to the server with enhanced error handling.
 async function sendDataToServer(selectedData) {
   try {
-    // Wrap chrome.storage.local.get in a Promise to catch errors.
-    const getPrivacyPolicyAccepted = () =>
-      new Promise((resolve, reject) => {
-        chrome.storage.local.get("privacyPolicyAccepted", (result) => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
-          } else {
-            resolve(result.privacyPolicyAccepted);
-          }
-        });
-      });
-
-    const privacyPolicyAccepted = await getPrivacyPolicyAccepted();
+    const privacyPolicyAccepted = await getStorageValue("privacyPolicyAccepted");
     if (typeof privacyPolicyAccepted === "undefined") {
       throw new Error("Privacy policy acceptance not found.");
     }
@@ -299,7 +300,6 @@ async function sendDataToServer(selectedData) {
       }),
     });
 
-    // If response is not OK, try to extract an error message from the response.
     if (!response.ok) {
       let errorResponse;
       try {
@@ -314,49 +314,28 @@ async function sendDataToServer(selectedData) {
       return;
     }
 
-    // For a successful response, parse the data and update the UI.
     const responseData = await response.json();
     handleSuccess(responseData.id);
 
-    // Helper function to wrap chrome.storage.local.get in a Promise.
-    const getComplaints = (key) =>
-      new Promise((resolve, reject) => {
-        chrome.storage.local.get(key, (result) => {
-          if (chrome.runtime.lastError) {
-            reject(chrome.runtime.lastError);
-          } else {
-            resolve(result[key] || []);
-          }
-        });
-      });
-
     // Store BBC or IPSO complaints in local storage.
     if (complaintType === "BBC") {
-      const bbcComplaints = await getComplaints("bbcComplaints");
+      const bbcComplaints = (await getStorageValue("bbcComplaints")) || [];
       bbcComplaints.push({
         where: complaintType,
         subject: selectedData.title,
         id: responseData.id,
         dateRetrieved: Date.now(),
       });
-      chrome.storage.local.set({ bbcComplaints }, () => {
-        if (chrome.runtime.lastError) {
-          console.error("Error storing BBC complaints:", chrome.runtime.lastError);
-        }
-      });
+      await extension.storage.local.set({ bbcComplaints });
     } else if (complaintType === "IPSO") {
-      const ipsoComplaints = await getComplaints("ipsoComplaints");
+      const ipsoComplaints = (await getStorageValue("ipsoComplaints")) || [];
       ipsoComplaints.push({
         where: complaintType,
         subject: selectedData.complaintDetails.title,
         id: responseData.id,
         dateRetrieved: Date.now(),
       });
-      chrome.storage.local.set({ ipsoComplaints }, () => {
-        if (chrome.runtime.lastError) {
-          console.error("Error storing IPSO complaints:", chrome.runtime.lastError);
-        }
-      });
+      await extension.storage.local.set({ ipsoComplaints });
     }
   } catch (error) {
     console.error("Error sending data:", error);
@@ -364,11 +343,15 @@ async function sendDataToServer(selectedData) {
   }
 }
 
-// Wait until the DOM is fully loaded before initializing
-document.addEventListener("DOMContentLoaded", () => {
-  if (originUrl && data) {
+function load() {
+  console.log("Loading confirmation page...");
+  console.log("Origin URL:", originUrl);
+  console.log("Data:", data);
+  if (data) {
     try {
+      console.log("Data:", data);
       parsedData = JSON.parse(data);
+      console.log("Parsed Data:", parsedData);
       formData = parsedData.formData || parsedData;
       complaintType = parsedData.where; // Expected to be "IPSO" or "BBC"
 
@@ -392,13 +375,30 @@ document.addEventListener("DOMContentLoaded", () => {
     sendDataToServer(selectedData);
   });
 
-  document.getElementById("cancelBtn").addEventListener("click", () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  document.getElementById("cancelBtn").addEventListener("click", async () => {
+    try {
+      const tabs = await extension.tabs.query({ active: true, currentWindow: true });
       if (tabs.length && tabs[0].id) {
-        chrome.tabs.remove(tabs[0].id);
+        await extension.tabs.remove(tabs[0].id);
       } else {
         alert("Please close the tab manually.");
       }
-    });
+    } catch (error) {
+      console.error("Error closing tab:", error);
+      alert("Error closing tab. Please close it manually.");
+    }
   });
+}
+
+console.log("Confirmation page loaded.");
+// Wait until the DOM is fully loaded before initializing
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM fully loaded and parsed.");
+  load();
 });
+// Fallback for older browsers that may not support the DOMContentLoaded event
+if (document.readyState === "complete") {
+  console.log("Document is already fully loaded.");
+  load();
+}
+load();
