@@ -294,7 +294,7 @@ async function sendDataToServer(selectedData) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         where: complaintType,
-        originUrl: selectedData.originUrl,
+        originUrl: selectedData.originUrl || originUrl || "MISSING",
         interceptedData: selectedData,
         privacyPolicyAccepted: privacyPolicyAccepted,
       }),
@@ -347,6 +347,9 @@ function load() {
   console.log("Loading confirmation page...");
   console.log("Origin URL:", originUrl);
   console.log("Data:", data);
+  if (!originUrl) {
+    originUrl= "Origin URL is missing.";
+  }}
   if (data) {
     try {
       console.log("Data:", data);
@@ -365,8 +368,8 @@ function load() {
   }
 
   document.getElementById("sendBtn").addEventListener("click", () => {
-    if (!originUrl || !data) {
-      return alert("Data or origin URL is missing.");
+    if (!data) {
+      return alert("Data is missing.");
     }
     const selectedData = getSelectedData(complaintType);
     if (Object.keys(selectedData).length === 0) {
@@ -388,7 +391,7 @@ function load() {
       alert("Error closing tab. Please close it manually.");
     }
   });
-}
+
 
 console.log("Confirmation page loaded.");
 // Wait until the DOM is fully loaded before initializing
