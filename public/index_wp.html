@@ -1,82 +1,389 @@
-<h1>Media Complaint Response Form</h1>
-<div class="form-container">
-  <form id="replyForm" novalidate>
-    <label for="interceptId">TACC Record ID:</label>
-    <input
-            type="text"
-            id="interceptId"
-            name="interceptId"
-            required
-            pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
-            title="Please enter a valid TACC Record ID"
-    />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Media Complaint Response Form</title>
+  <style>
+    /* Add your CSS styles as needed */
+    .error-message { color: red; }
+    .success-message { color: green; }
+    .loading-message { color: blue; }
+    .card { padding: 10px; border: 1px solid #ccc; margin-bottom: 10px; }
+    .custom-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+    .custom-modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Media Complaint Response Form</h1>
+  <div class="form-container">
+    <form id="replyForm" novalidate>
+      <label for="interceptId">TACC Record ID:</label>
+      <input
+        type="text"
+        id="interceptId"
+        name="interceptId"
+        required
+        pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+        title="Please enter a valid TACC Record ID"
+      />
 
-    <div
-            id="complaintDetails"
-            class="complaint-details"
-            style="display: none"
-    >
-      <h4 style="margin-bottom: 5px">Complaint Details</h4>
-      <div class="card" style="margin-bottom:15px; background-color: #d3f8d3;">
-        <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
-        <p id="sourceurl_item"><strong>Prog URL:</strong> <span id="sourceurl"></span></p>
-        <p id="programme_item"><strong>Prog Name:</strong> <span id="programme"></span></p>
-        <p><strong>Description:</strong></p>
-        <p id="complaintDescription"></p>
+      <div id="complaintDetails" class="complaint-details" style="display: none">
+        <h4 style="margin-bottom: 5px">Complaint Details</h4>
+        <div class="card" style="margin-bottom:15px; background-color: #d3f8d3;">
+          <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
+          <p id="sourceurl_item"><strong>Prog URL:</strong> <span id="sourceurl"></span></p>
+          <p id="programme_item"><strong>Prog Name:</strong> <span id="programme"></span></p>
+          <p><strong>Description:</strong></p>
+          <p id="complaintDescription"></p>
+        </div>
       </div>
-    </div>
 
-    <div id="repliesSection" class="replies-section" style="display: none">
-      <h4 style="margin-bottom: 5px">Existing Replies</h4>
-      <div id="repliesList">
-        <!-- Existing replies will be appended here -->
+      <div id="repliesSection" class="replies-section" style="display: none">
+        <h4 style="margin-bottom: 5px">Existing Replies</h4>
+        <div id="repliesList">
+          <!-- Existing replies will be appended here -->
+        </div>
       </div>
-    </div>
 
-    <label for="bbcRef">BBC Reference Number:</label>
-    <input
-            type="text"
-            id="bbcRef"
-            name="bbcRef"
-            pattern="^[A-Z]{3}-\d{7}-[A-Z0-9]{6}$"
-            title="BBC Reference Number should follow the format AAA-1234567-ABC123"
-    />
+      <!-- Updated Label and input for reference number -->
+      <label for="bbcRef">Reference Number (BBC or IPSO):</label>
+      <input
+        type="text"
+        id="bbcRef"
+        name="bbcRef"
+        pattern="^(?:[A-Z]{3}-\d{7}-[A-Z0-9]{6}|[0-9]{5}-[0-9]{2})$"
+        title="Reference Number should follow the format BBC: AAA-1234567-ABC123 or IPSO: 12345-67"
+      />
 
-    <label for="bbcReply">Complaint Response:</label>
-    <textarea
-            id="bbcReply"
-            name="bbcReply"
-            required
-            placeholder="Type your reply here..."
-    ></textarea>
+      <label for="bbcReply">Complaint Response:</label>
+      <textarea
+        id="bbcReply"
+        name="bbcReply"
+        required
+        placeholder="Type your reply here..."
+      ></textarea>
 
-    <!-- GDPR Consent Section -->
-    <div class="consent-section">
-      <label for="gdprConsentCheckbox">
-        <input
-                type="checkbox"
-                id="gdprConsentCheckbox"
-                name="gdprConsent"
-        />
-        I acknowledge that I have read and understand the
-        <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
-      </label>
-    </div>
+      <!-- GDPR Consent Section -->
+      <div class="consent-section">
+        <label for="gdprConsentCheckbox">
+          <input type="checkbox" id="gdprConsentCheckbox" name="gdprConsent" />
+          I acknowledge that I have read and understand the
+          <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
+        </label>
+      </div>
 
-    <button type="submit" id="submitReplyBtn" disabled>Submit Reply</button>
-  </form>
+      <button type="submit" id="submitReplyBtn" disabled>Submit Reply</button>
+    </form>
 
-  <div id="messageContainer"></div>
-</div>
+    <div id="messageContainer"></div>
+  </div>
 
-<!-- Custom Modal -->
-<div class="custom-modal-overlay" id="customModal">
-  <div class="custom-modal-content">
-    <p>Reply submitted successfully!</p>
-    <p>Do you want to send another reply?</p>
-    <div class="custom-modal-buttons">
-      <button id="modalYes" class="yes-button">Yes</button>
-      <button id="modalNo" class="no-button">No</button>
+  <!-- Custom Modal -->
+  <div class="custom-modal-overlay" id="customModal">
+    <div class="custom-modal-content">
+      <p>Reply submitted successfully!</p>
+      <p>Do you want to send another reply?</p>
+      <div class="custom-modal-buttons">
+        <button id="modalYes" class="yes-button">Yes</button>
+        <button id="modalNo" class="no-button">No</button>
+      </div>
     </div>
   </div>
-</div>
+
+  <script>
+    // Function to get query parameters
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    // Function to validate form fields manually
+    function validateForm(form) {
+      let isValid = true;
+      const errors = [];
+
+      // TACC Record ID validation
+      const interceptId = form.interceptId.value.trim();
+      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      if (!interceptIdPattern.test(interceptId)) {
+        isValid = false;
+        errors.push("Please enter a valid TACC Record ID (UUID v4).");
+      }
+
+      // Reference Number validation (accepts BBC or IPSO formats)
+      const bbcRef = form.bbcRef.value.trim();
+      const referencePattern = /^(?:[A-Z]{3}-\d{7}-[A-Z0-9]{6}|[0-9]{5}-[0-9]{2})$/;
+      if (bbcRef.length > 0 && !referencePattern.test(bbcRef)) {
+        if (!confirm("The reference number is invalid. Are you sure you want to submit without a valid reference?")) {
+          isValid = false;
+        }
+      }
+
+      // Complaint Response validation
+      const bbcReply = form.bbcReply.value.trim();
+      if (bbcReply.length === 0) {
+        isValid = false;
+        errors.push("Complaint Response cannot be empty.");
+      }
+
+      // GDPR Consent validation
+      const gdprConsentChecked = form.gdprConsent.checked;
+      if (!gdprConsentChecked) {
+        isValid = false;
+        errors.push("You must acknowledge the GDPR Privacy Policy to submit your reply.");
+      }
+
+      return { isValid, errors };
+    }
+
+    // Function to fetch and display complaint details
+    async function fetchComplaintDetails(uuid) {
+      const complaintDetails = document.getElementById("complaintDetails");
+      const complaintTitle = document.getElementById("complaintTitle");
+      const sourceurl = document.getElementById("sourceurl");
+      const programme = document.getElementById("programme");
+      const sourceurl_item = document.getElementById("sourceurl_item");
+      const programme_item = document.getElementById("programme_item");
+      const complaintDescription = document.getElementById("complaintDescription");
+      const repliesSection = document.getElementById("repliesSection");
+      const repliesList = document.getElementById("repliesList");
+
+      try {
+        // Fetch complaint details
+        const complaintResponse = await fetch(`/api/complaint/${uuid}`);
+        if (!complaintResponse.ok) {
+          throw new Error("Complaint not found.");
+        }
+        const complaintData = await complaintResponse.json();
+        complaintTitle.textContent = complaintData.complaint.title || "No Title";
+        if (complaintData.complaint.sourceurl) {
+          sourceurl_item.style.display = "block";
+          sourceurl.textContent = complaintData.complaint.sourceurl;
+        } else {
+          sourceurl_item.style.display = "none";
+          sourceurl.textContent = "";
+        }
+        if (complaintData.complaint.programme) {
+          programme_item.style.display = "block";
+          programme.textContent = complaintData.complaint.programme;
+        } else {
+          programme_item.style.display = "none";
+          programme.textContent = "";
+        }
+        complaintDescription.textContent = complaintData.complaint.description || "No Description";
+        complaintDetails.style.display = "block";
+      } catch (error) {
+        // Hide complaint details if fetching fails
+        complaintDetails.style.display = "none";
+        displayError(error.message);
+        console.error("Error fetching complaint details:", error);
+        return;
+      }
+
+      try {
+        // Fetch existing replies
+        const repliesResponse = await fetch(`/api/replies/${uuid}`);
+        if (!repliesResponse.ok) {
+          return;
+        }
+        const repliesData = await repliesResponse.json();
+        repliesList.innerHTML = "";
+
+        if (repliesData.length === 0) {
+          repliesList.innerHTML = "<p>No replies yet.</p>";
+        } else {
+          repliesData.forEach((reply) => {
+            const replyItem = document.createElement("div");
+            replyItem.className = "reply-item";
+            replyItem.innerHTML = `
+              <div class="card">
+                <p><strong>Reference Number:</strong> ${reply.bbc_ref_number}</p>
+                <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
+                <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
+              </div>
+            `;
+            repliesList.appendChild(replyItem);
+          });
+        }
+        repliesSection.style.display = "block";
+      } catch (error) {
+        repliesSection.style.display = "none";
+        displayError(error.message);
+        console.error("Error fetching replies:", error);
+      }
+    }
+
+    // Function to display error messages
+    function displayError(message) {
+      const messageContainer = document.getElementById("messageContainer");
+      const errorMessage = document.createElement("div");
+      errorMessage.className = "error-message";
+      errorMessage.textContent = `Error: ${message}`;
+      messageContainer.appendChild(errorMessage);
+    }
+
+    // Function to display success messages
+    function displaySuccess(message) {
+      const messageContainer = document.getElementById("messageContainer");
+      const successMessage = document.createElement("div");
+      successMessage.className = "success-message";
+      successMessage.textContent = message;
+      messageContainer.appendChild(successMessage);
+    }
+
+    // Function to display loading messages
+    function displayLoading(message) {
+      const messageContainer = document.getElementById("messageContainer");
+      const loadingMessage = document.createElement("div");
+      loadingMessage.className = "loading-message";
+      loadingMessage.textContent = message;
+      messageContainer.appendChild(loadingMessage);
+      return loadingMessage;
+    }
+
+    // Auto-focus on interceptId field when page loads
+    window.onload = function () {
+      document.getElementById("interceptId").focus();
+      const uuid = getQueryParam("uuid");
+      if (uuid) {
+        document.getElementById("interceptId").value = uuid;
+        document.getElementById("interceptId").dispatchEvent(new Event("blur"));
+      }
+    };
+
+    // Event listener for TACC Record ID field
+    document.getElementById("interceptId").addEventListener("blur", function () {
+      const uuid = this.value.trim();
+      const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+      document.getElementById("messageContainer").innerHTML = "";
+      document.getElementById("complaintDetails").style.display = "none";
+      document.getElementById("repliesSection").style.display = "none";
+
+      if (uuid && interceptIdPattern.test(uuid)) {
+        const loadingMessage = displayLoading("Fetching complaint details...");
+        fetchComplaintDetails(uuid)
+          .then(() => loadingMessage.remove())
+          .catch(() => loadingMessage.remove());
+      }
+    });
+
+    document.getElementById("replyForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const messageContainer = document.getElementById("messageContainer");
+      messageContainer.innerHTML = "";
+      const form = e.target;
+      const validation = validateForm(form);
+
+      if (!validation.isValid) {
+        (validation.errors || []).forEach((error) => {
+          const errorMessage = document.createElement("div");
+          errorMessage.className = "error-message";
+          errorMessage.textContent = error;
+          messageContainer.appendChild(errorMessage);
+        });
+        return;
+      }
+
+      const formData = {
+        bbc_ref_number: form.bbcRef.value.trim(),
+        intercept_id: form.interceptId.value.trim(),
+        bbc_reply: form.bbcReply.value.trim(),
+      };
+
+      const loadingMessage = displayLoading("Submitting your reply... Please wait.");
+
+      try {
+        const response = await fetch("/api/replies", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const result = await response.json();
+        loadingMessage.remove();
+
+        if (response.ok) {
+          const customModal = document.getElementById("customModal");
+          customModal.style.display = "flex";
+
+          document.getElementById("modalYes").onclick = () => {
+            const interceptId = replyForm.interceptId.value.trim();
+            const gdprConsentChecked = gdprConsentCheckbox.checked;
+            replyForm.bbcReply.value = "";
+            submitReplyBtn.disabled = !gdprConsentChecked;
+            customModal.style.display = "none";
+            if (interceptId) {
+              fetchComplaintDetails(interceptId)
+                .then(() => console.log("Replies reloaded successfully."))
+                .catch((error) => console.error("Error reloading replies:", error));
+            }
+            replyForm.bbcReply.focus();
+          };
+
+          document.getElementById("modalNo").onclick = () => {
+            const formContainer = document.querySelector(".form-container");
+            formContainer.innerHTML = "<p>Thank you for your submission.</p>";
+            customModal.style.display = "none";
+          };
+
+          fetchComplaintDetails(formData.intercept_id);
+        } else {
+          const errorMessage = document.createElement("div");
+          errorMessage.className = "error-message";
+          errorMessage.textContent = `Error: ${result.error || "An error occurred while submitting your reply."}`;
+          messageContainer.appendChild(errorMessage);
+        }
+      } catch (error) {
+        loadingMessage.remove();
+        const errorMessage = document.createElement("div");
+        errorMessage.className = "error-message";
+        errorMessage.textContent = "An unexpected error occurred. Please try again later.";
+        messageContainer.appendChild(errorMessage);
+        console.error("Error submitting reply:", error);
+      }
+    });
+
+    // Modal Functionality
+    const customModal = document.getElementById("customModal");
+    const modalYes = document.getElementById("modalYes");
+    const modalNo = document.getElementById("modalNo");
+    const formContainer = document.querySelector(".form-container");
+    const replyForm = document.getElementById("replyForm");
+
+    customModal.addEventListener("click", function (event) {
+      if (event.target === this) {
+        event.stopPropagation();
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && customModal.style.display === "flex") {
+        event.preventDefault();
+      }
+    });
+
+    const gdprConsentCheckbox = document.getElementById("gdprConsentCheckbox");
+    const submitReplyBtn = document.getElementById("submitReplyBtn");
+
+    function updateSubmitButtonState() {
+      submitReplyBtn.disabled = !gdprConsentCheckbox.checked;
+    }
+
+    gdprConsentCheckbox.addEventListener("change", updateSubmitButtonState);
+  </script>
+</body>
+</html>
