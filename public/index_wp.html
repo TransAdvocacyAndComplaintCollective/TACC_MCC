@@ -75,6 +75,10 @@
         placeholder="Type your reply here..."
       ></textarea>
 
+      <!-- New file input allowing any file type -->
+      <label for="fileUpload">Upload File (optional, max 5MB):</label>
+      <input type="file" id="fileUpload" name="file_upload" />
+
       <!-- GDPR Consent Section -->
       <div class="consent-section">
         <label for="gdprConsentCheckbox">
@@ -279,6 +283,7 @@
       }
     });
 
+    // Updated form submission to allow file uploads (any file type)
     document.getElementById("replyForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const messageContainer = document.getElementById("messageContainer");
@@ -296,21 +301,21 @@
         return;
       }
 
-      const formData = {
-        bbc_ref_number: form.bbcRef.value.trim(),
-        intercept_id: form.interceptId.value.trim(),
-        bbc_reply: form.bbcReply.value.trim(),
-      };
+      // Use FormData to send file along with other fields
+      const formData = new FormData();
+      formData.append("bbc_ref_number", form.bbcRef.value.trim());
+      formData.append("intercept_id", form.interceptId.value.trim());
+      formData.append("bbc_reply", form.bbcReply.value.trim());
+      if (form.fileUpload && form.fileUpload.files.length > 0) {
+        formData.append("file_upload", form.fileUpload.files[0]);
+      }
 
       const loadingMessage = displayLoading("Submitting your reply... Please wait.");
 
       try {
         const response = await fetch("/api/replies", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
+          body: formData
         });
 
         const result = await response.json();
@@ -322,9 +327,7 @@
 
           document.getElementById("modalYes").onclick = () => {
             const interceptId = replyForm.interceptId.value.trim();
-            const gdprConsentChecked = gdprConsentCheckbox.checked;
             replyForm.bbcReply.value = "";
-            submitReplyBtn.disabled = !gdprConsentChecked;
             customModal.style.display = "none";
             if (interceptId) {
               fetchComplaintDetails(interceptId)
@@ -340,7 +343,7 @@
             customModal.style.display = "none";
           };
 
-          fetchComplaintDetails(formData.intercept_id);
+          fetchComplaintDetails(formData.get("intercept_id"));
         } else {
           const errorMessage = document.createElement("div");
           errorMessage.className = "error-message";

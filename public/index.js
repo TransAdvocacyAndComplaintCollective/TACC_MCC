@@ -550,6 +550,7 @@ router.get("/problematic", (req, res) => {
 });
 
 // POST endpoint to store replies with validation and optional file upload
+// Now allowing any file type (with a max size of 5MB)
 router.post("/replies", upload.single("pdf_file"), (req, res) => {
   let { bbc_ref_number, intercept_id, bbc_reply } = req.body;
 
@@ -582,7 +583,8 @@ router.post("/replies", upload.single("pdf_file"), (req, res) => {
     return res.status(400).json({ error: "Reply cannot be empty." });
   }
 
-  // Check for an optional file upload (Multer already validates type/size)
+  // Check for an optional file upload (Multer already validates file size)
+  // Now allowing any file type
   let pdfFilePath = null;
   if (req.file) {
     pdfFilePath = req.file.filename;
@@ -603,7 +605,7 @@ router.post("/replies", upload.single("pdf_file"), (req, res) => {
     const sanitizedReply = sanitizeHtml(bbc_reply);
     const sanitizedReference = sanitizeHtml(bbc_ref_number || "");
 
-    // Insert the reply into the database; include the pdf_file if uploaded.
+    // Insert the reply into the database; include the uploaded file if provided.
     const insertReplyQuery = `
       INSERT INTO replies (reference_number, intercept_id, reply, pdf_file)
       VALUES (?, ?, ?, ?);
