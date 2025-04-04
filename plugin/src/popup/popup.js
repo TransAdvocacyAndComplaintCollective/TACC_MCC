@@ -119,9 +119,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       sourceCell.textContent = complaint.source ? complaint.source.toUpperCase() : "Unknown";
       row.appendChild(sourceCell);
       // Date
+      const c = new Date(complaint.dateRetrieved);
       const dateCell = document.createElement("td");
       dateCell.textContent = complaint.dateRetrieved
-        ? new Date(complaint.dateRetrieved).toLocaleString()
+        ? c.getDate() + "/" + (c.getMonth() + 1) + "/" + c.getFullYear()
         : "N/A";
       row.appendChild(dateCell);
       // Action (Delete button)
