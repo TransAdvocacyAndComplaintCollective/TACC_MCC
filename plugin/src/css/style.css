@@ -80,6 +80,13 @@ button {
     max-height: 300px; /* Limit the height of the container */
     overflow-y: auto;  /* Add vertical scroll bar if content overflows */
 }
+
+#confirmation-header{
+    background: #f4f4f4;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
 .field-selection {
     margin-top: 20px;
 }
