@@ -8,21 +8,19 @@
 </head>
 <body>
   <div id="confirmation-container">
-    <h2>Send Data to TACC?</h2>
-    <p>Do you want to send a copy of the intercepted data to TACC? You can choose which pieces of information you'd like
-      to share.</p>
-    
+    <div id="confirmation-header">
+    <h1 style="text-align: center">Submit Data?</h1>
+    </div>
     <div class="notification">
-      <h4>Important:</h4>
-      <p style="line-height: 1.4em;">Check the inbox of the email address you provide as the BBC require you to <strong>verify the address
-      </strong>.<br>
+      <h5>Important:</h5>
+      <p style="line-height: 1.4em;">The BBC requires you to verify your email address.<br>
       If you can’t find the email, please check your spam or junk folders.<br>
-      <strong style="color: red; font-size: 16px;">You are allowed 60 minutes in which to verify your account. If your
-        email address isn’t verified within this period your complaint will be discarded.</strong></p>
+      <strong style="color: red; font-size: 16px;">You must verify your account within 60 minutes. Failure to verify
+      your account within in this period will result in your complaint being discarded.</strong></p>
     </div>
 
     <div class="field-selection">
-      <h4>Select Information to Send:</h4>
+      <h5>Optional data, select to include otherwise, data will be anonymous.</h5>
       <form id="fieldsForm">
         <!-- Checkboxes will be dynamically populated here by confirmation.js -->
       </form>
