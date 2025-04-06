@@ -209,7 +209,7 @@ function handleSuccess(complaintId) {
     const complaintText = document.createElement("div");
     complaintText.id = "complaintText";
     const complaintStrong = document.createElement("strong");
-    complaintStrong.textContent = "Your complaint number is: ";
+    complaintStrong.textContent = "Your TACC Record ID is: ";
     complaintText.appendChild(complaintStrong);
     complaintText.appendChild(document.createTextNode(complaintId));
     dataContentEl.appendChild(document.createElement("br"));
