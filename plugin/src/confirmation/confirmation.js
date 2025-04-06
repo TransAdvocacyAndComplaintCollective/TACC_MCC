@@ -126,7 +126,7 @@ function createFieldCheckbox(field, valueExists, type = "BBC") {
   checkbox.name = field;
   checkbox.value = "true";
   checkbox.disabled = !fieldMapping[field]?.optional; // disable if not optional
-  checkbox.checked = Boolean(valueExists);
+  checkbox.checked = Boolean(!fieldMapping[field]?.optional);
   label.appendChild(checkbox);
   const fieldName = fieldMapping[field]?.name || field;
   label.appendChild(document.createTextNode(` ${fieldName}`));
