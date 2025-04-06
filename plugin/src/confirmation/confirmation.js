@@ -126,7 +126,7 @@ function createFieldCheckbox(field, valueExists, type = "BBC") {
   checkbox.name = field;
   checkbox.value = "true";
   checkbox.disabled = !fieldMapping[field]?.optional; // disable if not optional
-  checkbox.checked = Boolean(!fieldMapping[field]?.optional);
+  checkbox.checked = Boolean(valueExists);
   label.appendChild(checkbox);
   const fieldName = fieldMapping[field]?.name || field;
   label.appendChild(document.createTextNode(` ${fieldName}`));
@@ -209,7 +209,7 @@ function handleSuccess(complaintId) {
     const complaintText = document.createElement("div");
     complaintText.id = "complaintText";
     const complaintStrong = document.createElement("strong");
-    complaintStrong.textContent = "Your TACC Record ID is: ";
+    complaintStrong.textContent = "Your complaint number is: ";
     complaintText.appendChild(complaintStrong);
     complaintText.appendChild(document.createTextNode(complaintId));
     dataContentEl.appendChild(document.createElement("br"));
