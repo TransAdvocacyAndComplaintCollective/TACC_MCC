@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Media Complaint Response & File Upload</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        color: #3a4f66;
+        background-color: #fafbfc;
+      }
+      h1 {
+        text-align: center;
+        margin-top: 20px;
+      }
+      .form-container {
+        border-radius: 0.375rem;
+        margin: 40px auto;
+        max-width: 800px;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin: 10px 0 5px;
+      }
+      input[type="text"],
+      textarea,
+      input[type="file"],
+      input[type="checkbox"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+        transition: all 0.3s ease-in-out;
+      }
+      input[type="text"]:focus,
+      textarea:focus,
+      input[type="file"]:focus {
+        border-color: #4caf50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
+      }
+      textarea {
+        height: 150px;
+        background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
+        transition: background 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        padding: 20px;
+        border: 1px solid #ccc;
+      }
+      textarea::placeholder {
+        color: #bbb;
+        font-style: italic;
+        transition: color 0.3s ease-in-out;
+      }
+      textarea:focus {
+        background: linear-gradient(135deg, #e0f7fa, #c8e6c9);
+        box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
+        padding: 18px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .error-message {
+        color: red;
+        margin-top: 10px;
+      }
+      .success-message {
+        color: green;
+        margin-top: 10px;
+      }
+      .loading-message {
+        color: orange;
+        margin-top: 10px;
+      }
+      /* Custom Modal Styles */
+      .custom-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .custom-modal-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      .custom-modal-content p {
+        margin-bottom: 20px;
+        font-size: 18px;
+      }
+      .custom-modal-buttons {
+        justify-content: center;
+        gap: 10px;
+      }
+      .custom-modal-buttons button {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+      }
+      .custom-modal-buttons .yes-button {
+        background-color: #4caf50;
+        color: white;
+      }
+      .custom-modal-buttons .yes-button:hover {
+        background-color: #45a049;
+      }
+      .custom-modal-buttons .no-button {
+        background-color: #ccc;
+        color: #333;
+      }
+      .custom-modal-buttons .no-button:hover {
+        background-color: #b3b3b3;
+      }
+      /* Complaint Details Section */
+      .complaint-details {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+      }
+      .complaint-details h3 {
+        margin-bottom: 10px;
+      }
+      .replies-section {
+        margin-top: 20px;
+      }
+      .reply-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+      }
+      .reply-item:last-child {
+        border-bottom: none;
+      }
+      .reply-item h5 {
+        margin-bottom: 5px;
+      }
+      .reply-item p {
+        margin: 0;
+      }
+      /* Consent Section */
+      .consent-section {
+        margin-top: 20px;
+      }
+      .consent-section label {
+        font-weight: normal;
+        align-items: center;
+      }
+      .consent-section input[type="checkbox"] {
+        width:fit-content;
+        
+      }
+      /* Uploaded Files Section */
+      .uploaded-files {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f1f1f1;
+      }
+      .uploaded-files h4 {
+        margin-bottom: 10px;
+      }
+      /* Responsive Design */
+      @media (max-width: 600px) {
+        button {
+          width: 100%;
+          margin: 10px 0;
+        }
+      }
+      .notification {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        padding: 15px;
+        border-radius: 4px;
+        color: #856404;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Media Complaint Portal</h1>
+    <div class="container">
+      <!-- Nav Tabs -->
+      <ul class="nav nav-tabs justify-content-center" id="complaintTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="response-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#response"
+            type="button"
+            role="tab"
+            aria-controls="response"
+            aria-selected="true"
+          >
+            Complaint Response
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="upload-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#upload"
+            type="button"
+            role="tab"
+            aria-controls="upload"
+            aria-selected="false"
+          >
+            Upload Additional Files
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="complaintTabContent">
+        <!-- Complaint Response Form -->
+        <div
+          class="tab-pane fade show active"
+          id="response"
+          role="tabpanel"
+          aria-labelledby="response-tab"
+        >
+          <div class="form-container" style="margin-top: 20px">
+            <form id="replyForm" novalidate>
+              <label for="interceptId">TACC Record ID:</label>
+              <input
+                type="text"
+                id="interceptId"
+                name="interceptId"
+                required
+                pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                title="Please enter a valid TACC Record ID (UUID v4)"
+              />
+
+              <div id="complaintDetails" class="complaint-details" style="display: none">
+                <h4 style="margin-bottom: 5px">Complaint Details</h4>
+                <div class="card" style="margin-bottom:15px; background-color: #d3f8d3;">
+                  <p><strong>Title:</strong> <span id="complaintTitle"></span></p>
+                  <p id="sourceurl_item"><strong>Prog URL:</strong> <span id="sourceurl"></span></p>
+                  <p id="programme_item"><strong>Prog Name:</strong> <span id="programme"></span></p>
+                  <p><strong>Description:</strong></p>
+                  <p id="complaintDescription"></p>
+                </div>
+              </div>
+
+              <div id="repliesSection" class="replies-section" style="display: none">
+                <h4 style="margin-bottom: 5px">Existing Replies</h4>
+                <div id="repliesList">
+                  <!-- Existing replies will be appended here -->
+                </div>
+              </div>
+
+              <!-- Uploaded Files Section for Complaint Response -->
+              <div id="uploadedFilesSection" class="uploaded-files" style="display: none">
+                <h4>Uploaded Files</h4>
+                <ul id="uploadedFilesList">
+                  <!-- List of uploaded files will appear here -->
+                </ul>
+              </div>
+
+              <label for="bbcRef">Reference Number (BBC or IPSO):</label>
+              <input
+                type="text"
+                id="bbcRef"
+                name="bbcRef"
+                pattern="^(?:[A-Z]{3}-\d{7}-[A-Z0-9]{6}|[0-9]{5}-[0-9]{2})$"
+                title="Reference Number should follow the format BBC: AAA-1234567-ABC123 or IPSO: 12345-67"
+              />
+
+              <label for="bbcReply">Complaint Response:</label>
+              <textarea
+                id="bbcReply"
+                name="bbcReply"
+                required
+                placeholder="Type your reply here..."
+              ></textarea>
+
+              <label for="fileUpload">Upload File (optional, max 5MB):</label>
+              <input type="file" id="fileUpload" name="file_upload" />
+
+              <!-- GDPR Consent Section for Reply Form -->
+              <div class="consent-section">
+                <label for="gdprConsentCheckbox">
+                  <input type="checkbox" id="gdprConsentCheckbox" name="gdprConsent" />
+                  I acknowledge that I have read and understand the
+                  <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
+                </label>
+              </div>
+
+              <button type="submit" id="submitReplyBtn" disabled>Submit Reply</button>
+            </form>
+            <div id="messageContainerResponse"></div>
+          </div>
+        </div>
+
+        <!-- Upload Additional Complaint Files Form -->
+        <div
+          class="tab-pane fade"
+          id="upload"
+          role="tabpanel"
+          aria-labelledby="upload-tab"
+        >
+          <div class="form-container" style="margin-top: 20px">
+            <form id="uploadForm" method="POST" action="/api/upload-files" enctype="multipart/form-data">
+              <div class="mb-3">
+                <label for="taccRecordId">TACC Record ID:</label>
+                <input
+                  type="text"
+                  id="taccRecordId"
+                  name="taccRecordId"
+                  required
+                  pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                  title="Please enter a valid TACC Record ID (UUID v4)"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="fileTitle">Title / Short Description (Optional):</label>
+                <input
+                  type="text"
+                  id="fileTitle"
+                  name="fileTitle"
+                  placeholder="Enter a title or description for the files"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="fileUploadMultiple">Upload Files:</label>
+                <input type="file" id="fileUploadMultiple" name="fileUpload[]" multiple />
+                <div class="form-text">
+                  You can select multiple files. Maximum file size per file is 5MB. Maximum 5 files allowed.
+                </div>
+              </div>
+
+              <!-- GDPR Consent Section for Upload Form -->
+              <div class="consent-section">
+                <label for="gdprConsentCheckboxUpload">
+                  <input type="checkbox" id="gdprConsentCheckboxUpload" name="gdprConsentUpload" />
+                  I acknowledge that I have read and understand the
+                  <a href="/privacy-policy/" target="_blank">Privacy Policy</a>.
+                </label>
+              </div>
+
+              <button type="submit" id="submitUploadBtn" disabled>Submit Files</button>
+            </form>
+            <div id="messageContainerUpload"></div>
+            <!-- Uploaded Files Section for File Upload Form -->
+            <div id="uploadedFilesSectionUpload" class="uploaded-files" style="display: none">
+              <h4>Uploaded Files</h4>
+              <ul id="uploadedFilesListUpload">
+                <!-- List of uploaded files will appear here -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Modal for Complaint Response -->
+    <div class="custom-modal-overlay" id="customModal">
+      <div class="custom-modal-content">
+        <p>Reply submitted successfully!</p>
+        <p>Do you want to send another reply?</p>
+        <div class="custom-modal-buttons">
+          <button id="modalYes" class="yes-button">Yes</button>
+          <button id="modalNo" class="no-button">No</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // ---------- Shared Utility Functions ----------
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      function displayMessage(containerId, type, message) {
+        const container = document.getElementById(containerId);
+        const div = document.createElement("div");
+        div.className = type + "-message";
+        div.textContent = message;
+        container.appendChild(div);
+      }
+
+      function clearMessages(containerId) {
+        document.getElementById(containerId).innerHTML = "";
+      }
+
+      // ---------- Fetch Uploaded Files Function ----------
+      async function fetchUploadedFiles(uuid) {
+        try {
+          const filesResponse = await fetch(`/api/files/${uuid}`);
+          if (!filesResponse.ok) {
+            throw new Error("Failed to fetch uploaded files.");
+          }
+          const filesData = await filesResponse.json();
+          const uploadedFilesSection = document.getElementById("uploadedFilesSection");
+          const uploadedFilesList = document.getElementById("uploadedFilesList");
+          if (filesData.length === 0) {
+            uploadedFilesList.innerHTML = "<li>No files uploaded.</li>";
+          } else {
+            uploadedFilesList.innerHTML = "";
+            filesData.forEach(file => {
+              const li = document.createElement("li");
+              li.innerHTML = `<a href="${file.fileUrl}" target="_blank">${file.fileName}</a>`;
+              uploadedFilesList.appendChild(li);
+            });
+          }
+          uploadedFilesSection.style.display = "block";
+        } catch (err) {
+          console.error("Error fetching uploaded files:", err);
+        }
+      }
+
+      // ---------- Complaint Response Form Functions ----------
+      function validateReplyForm(form) {
+        let isValid = true;
+        const errors = [];
+        // Validate TACC Record ID
+        const interceptId = form.interceptId.value.trim();
+        const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+        if (!interceptIdPattern.test(interceptId)) {
+          isValid = false;
+          errors.push("Please enter a valid TACC Record ID (UUID v4).");
+        }
+        // Validate reference number if provided
+        const bbcRef = form.bbcRef.value.trim();
+        const referencePattern = /^(?:[A-Z]{3}-\d{7}-[A-Z0-9]{6}|[0-9]{5}-[0-9]{2})$/;
+        if (bbcRef.length > 0 && !referencePattern.test(bbcRef)) {
+          if (!confirm("The reference number is invalid. Are you sure you want to submit without a valid reference?")) {
+            isValid = false;
+          }
+        }
+        // Validate complaint response text
+        const bbcReply = form.bbcReply.value.trim();
+        if (bbcReply.length === 0) {
+          isValid = false;
+          errors.push("Complaint Response cannot be empty.");
+        }
+        // Validate GDPR consent
+        if (!form.gdprConsent.checked) {
+          isValid = false;
+          errors.push("You must acknowledge the Privacy Policy to submit your reply.");
+        }
+        return { isValid, errors };
+      }
+
+      async function fetchComplaintDetails(uuid) {
+        const complaintDetails = document.getElementById("complaintDetails");
+        const complaintTitle = document.getElementById("complaintTitle");
+        const sourceurl = document.getElementById("sourceurl");
+        const programme = document.getElementById("programme");
+        const sourceurl_item = document.getElementById("sourceurl_item");
+        const programme_item = document.getElementById("programme_item");
+        const complaintDescription = document.getElementById("complaintDescription");
+        const repliesSection = document.getElementById("repliesSection");
+        const repliesList = document.getElementById("repliesList");
+
+        try {
+          const complaintResponse = await fetch(`/api/complaint/${uuid}`);
+          if (!complaintResponse.ok) {
+            throw new Error("Complaint not found.");
+          }
+          const complaintData = await complaintResponse.json();
+          complaintTitle.textContent = complaintData.complaint.title || "No Title";
+          if (complaintData.complaint.sourceurl) {
+            sourceurl_item.style.display = "block";
+            sourceurl.textContent = complaintData.complaint.sourceurl;
+          } else {
+            sourceurl_item.style.display = "none";
+            sourceurl.textContent = "";
+          }
+          if (complaintData.complaint.programme) {
+            programme_item.style.display = "block";
+            programme.textContent = complaintData.complaint.programme;
+          } else {
+            programme_item.style.display = "none";
+            programme.textContent = "";
+          }
+          complaintDescription.textContent = complaintData.complaint.description || "No Description";
+          complaintDetails.style.display = "block";
+        } catch (error) {
+          complaintDetails.style.display = "none";
+          displayMessage("messageContainerResponse", "error", error.message);
+          console.error("Error fetching complaint details:", error);
+          return;
+        }
+
+        try {
+          const repliesResponse = await fetch(`/api/replies/${uuid}`);
+          if (!repliesResponse.ok) {
+            return;
+          }
+          const repliesData = await repliesResponse.json();
+          repliesList.innerHTML = "";
+          if (repliesData.length === 0) {
+            repliesList.innerHTML = "<p>No replies yet.</p>";
+          } else {
+            repliesData.forEach((reply) => {
+              const replyItem = document.createElement("div");
+              replyItem.className = "reply-item";
+              replyItem.innerHTML = `
+                <div class="card">
+                  <p><strong>Reference Number:</strong> ${reply.bbc_ref_number}</p>
+                  <p><strong>Reply:</strong> ${reply.bbc_reply}</p>
+                  <p><strong>Timestamp:</strong> ${new Date(reply.timestamp).toLocaleString()}</p>
+                </div>
+              `;
+              repliesList.appendChild(replyItem);
+            });
+          }
+          repliesSection.style.display = "block";
+        } catch (error) {
+          repliesSection.style.display = "none";
+          displayMessage("messageContainerResponse", "error", error.message);
+          console.error("Error fetching replies:", error);
+        }
+
+        // Fetch uploaded files for this complaint
+        fetchUploadedFiles(uuid);
+      }
+
+      // Auto-focus and pre-fill from query parameter
+      window.onload = function () {
+        document.getElementById("interceptId").focus();
+        const uuid = getQueryParam("uuid");
+        if (uuid) {
+          document.getElementById("interceptId").value = uuid;
+          document.getElementById("interceptId").dispatchEvent(new Event("blur"));
+        }
+      };
+
+      document.getElementById("interceptId").addEventListener("blur", function () {
+        const uuid = this.value.trim();
+        clearMessages("messageContainerResponse");
+        document.getElementById("complaintDetails").style.display = "none";
+        document.getElementById("repliesSection").style.display = "none";
+        document.getElementById("uploadedFilesSection").style.display = "none";
+        const interceptIdPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+        if (uuid && interceptIdPattern.test(uuid)) {
+          displayMessage("messageContainerResponse", "loading", "Fetching complaint details...");
+          fetchComplaintDetails(uuid).then(() => {
+            document.getElementById("messageContainerResponse").innerHTML = "";
+          }).catch(() => {
+            document.getElementById("messageContainerResponse").innerHTML = "";
+          });
+        }
+      });
+
+      document.getElementById("replyForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearMessages("messageContainerResponse");
+        const form = e.target;
+        const validation = validateReplyForm(form);
+        if (!validation.isValid) {
+          (validation.errors || []).forEach((error) => {
+            displayMessage("messageContainerResponse", "error", error);
+          });
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("bbc_ref_number", form.bbcRef.value.trim());
+        formData.append("intercept_id", form.interceptId.value.trim());
+        formData.append("bbc_reply", form.bbcReply.value.trim());
+        if (form.file_upload && form.file_upload.files.length > 0) {
+          formData.append("file_upload", form.file_upload.files[0]);
+        }
+
+        displayMessage("messageContainerResponse", "loading", "Submitting your reply... Please wait.");
+        try {
+          const response = await fetch("/api/replies", {
+            method: "POST",
+            body: formData
+          });
+          const result = await response.json();
+          document.getElementById("messageContainerResponse").innerHTML = "";
+          if (response.ok) {
+            const customModal = document.getElementById("customModal");
+            customModal.style.display = "flex";
+
+            document.getElementById("modalYes").onclick = () => {
+              form.bbcReply.value = "";
+              customModal.style.display = "none";
+              if (form.interceptId.value.trim()) {
+                fetchComplaintDetails(form.interceptId.value.trim())
+                  .then(() => console.log("Replies reloaded successfully."))
+                  .catch((error) => console.error("Error reloading replies:", error));
+              }
+              form.bbcReply.focus();
+            };
+            document.getElementById("modalNo").onclick = () => {
+              const formContainer = document.querySelector(".form-container");
+              formContainer.innerHTML = "<p>Thank you for your submission.</p>";
+              customModal.style.display = "none";
+            };
+
+            fetchComplaintDetails(formData.get("intercept_id"));
+          } else {
+            displayMessage("messageContainerResponse", "error", result.error || "An error occurred while submitting your reply.");
+          }
+        } catch (error) {
+          document.getElementById("messageContainerResponse").innerHTML = "";
+          displayMessage("messageContainerResponse", "error", "An unexpected error occurred. Please try again later.");
+          console.error("Error submitting reply:", error);
+        }
+      });
+
+      // Enable/disable submit button based on GDPR consent for reply form
+      const gdprConsentCheckbox = document.getElementById("gdprConsentCheckbox");
+      const submitReplyBtn = document.getElementById("submitReplyBtn");
+      gdprConsentCheckbox.addEventListener("change", function () {
+        submitReplyBtn.disabled = !this.checked;
+      });
+
+      // ---------- Upload Additional Files Form Functions ----------
+      // Disable submit button until GDPR consent is checked for upload form
+      const gdprConsentCheckboxUpload = document.getElementById("gdprConsentCheckboxUpload");
+      const submitUploadBtn = document.getElementById("submitUploadBtn");
+      gdprConsentCheckboxUpload.addEventListener("change", function () {
+        submitUploadBtn.disabled = !this.checked;
+      });
+
+      document.getElementById("uploadForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        clearMessages("messageContainerUpload");
+
+        const taccRecordId = document.getElementById("taccRecordId").value.trim();
+        const uuidPattern = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89ABab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+        if (!uuidPattern.test(taccRecordId)) {
+          document.getElementById("messageContainerUpload").innerHTML = '<div class="alert alert-danger">Please enter a valid TACC Record ID (UUID v4).</div>';
+          return;
+        }
+
+        const fileInput = document.getElementById("fileUploadMultiple");
+        const maxFilesAllowed = 5;
+        if (fileInput.files.length > maxFilesAllowed) {
+          document.getElementById("messageContainerUpload").innerHTML = '<div class="alert alert-danger">Maximum 5 files allowed.</div>';
+          return;
+        }
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+          method: 'POST',
+          body: formData
+        })
+        .then(async response => {
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Upload failed');
+          }
+          return response.json();
+        })
+        .then(data => {
+          document.getElementById("messageContainerUpload").innerHTML =
+            '<div class="alert alert-success">Files uploaded successfully! Record ID: ' + data.taccRecordId + '</div>';
+          // If the response contains a list of uploaded files, display them.
+          if (data.files && data.files.length > 0) {
+            const uploadedFilesSectionUpload = document.getElementById("uploadedFilesSectionUpload");
+            const uploadedFilesListUpload = document.getElementById("uploadedFilesListUpload");
+            uploadedFilesListUpload.innerHTML = "";
+            data.files.forEach(file => {
+              const li = document.createElement("li");
+              li.innerHTML = `<a href="${file.fileUrl}" target="_blank">${file.fileName}</a>`;
+              uploadedFilesListUpload.appendChild(li);
+            });
+            uploadedFilesSectionUpload.style.display = "block";
+          }
+        })
+        .catch(error => {
+          document.getElementById("messageContainerUpload").innerHTML = '<div class="alert alert-danger">Error: ' + error.message + '</div>';
+        });
+      });
+    </script>
+  </body>
+</html>
