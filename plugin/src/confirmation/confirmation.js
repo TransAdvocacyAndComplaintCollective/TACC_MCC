@@ -193,6 +193,7 @@ function handleSuccess(complaintId) {
   const cancelBtn = document.getElementById("cancelBtn");
   cancelBtn.textContent = "Close Page";
   cancelBtn.style.backgroundColor = "#4caf50";
+  cancelBtn.style.marginTop = "30px";
 
   const dataContentEl = document.getElementById("dataContent");
   dataContentEl.innerHTML = "";
