@@ -2,7 +2,7 @@
   "name": "TACC Media Complaints Collector",
   "version": "2.0.0",
   "manifest_version": 3,
-  "description": "TACC media complaints collector requests from British news sites and forwards the data to TACC.",
+  "description": "The TACC media complaints collector saves a copy of trans-related complaints made to UK media companies and sends that data to TACC for analysis.",
   "permissions": ["storage"],
   "host_permissions": [],
   "background": {
