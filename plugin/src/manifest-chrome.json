@@ -1,0 +1,44 @@
+{
+  "name": "TACC Media Complaints Collector",
+  "version": "2.0.0",
+  "manifest_version": 3,
+  "description": "The TACC media complaints collector saves a copy of trans-related complaints made to UK media companies and sends that data to TACC.",
+  "permissions": ["storage"],
+  "host_permissions": [],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/image-16.png",
+      "48": "icons/image-48.png"
+    }
+  },
+  "icons": {
+    "16": "icons/image-16.png",
+    "48": "icons/image-48.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*",
+        "https://www.ipso.co.uk/making-a-complaint/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "init/init.html",
+        "init/init.js",
+        "confirmation/confirmation.html",
+        "confirmation/confirmation.js",
+        "confirmation/confirmation.css",
+        "popup/popup.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

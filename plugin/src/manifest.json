@@ -1,14 +1,14 @@
 {
-  "name": "TACC Media Complaints Collector",
+  "name": "TACC Media Complaints Collector Extension",
   "version": "2.0.0",
-  "manifest_version": 3,
-  "description": "The TACC media complaints collector saves a copy of trans-related complaints made to UK media companies and sends that data to TACC for analysis.",
-  "permissions": ["storage"],
-  "host_permissions": [],
+  "manifest_version": 2,
+  "description": "The TACC media complaints collector saves a copy of trans-related complaints made to UK media companies and sends that data to TACC.",
+  "permissions": ["storage","webNavigation"],
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"],
+    "persistent": true
   },
-  "action": {
+  "browser_action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/image-16.png",
@@ -22,23 +22,23 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.bbc.co.uk/contact/complaints/make-a-complaint/*",
-        "https://www.ipso.co.uk/making-a-complaint/*"
+        "<all_urls>"
       ],
       "js": ["content.js"]
     }
   ],
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "init/init.html",
-        "init/init.js",
-        "confirmation/confirmation.html",
-        "confirmation/confirmation.js",
-        "confirmation/confirmation.css",
-        "popup/popup.css"
-      ],
-      "matches": ["<all_urls>"]
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "info@tacc.org.uk",
+      "strict_min_version": "79.0"
     }
+  },
+  "web_accessible_resources": [
+    "init/init.html",
+    "init/init.js",
+    "confirmation/confirmation.html",
+    "confirmation/confirmation.js",
+    "confirmation/confirmation.css",
+    "popup/popup.css"
   ]
 }
