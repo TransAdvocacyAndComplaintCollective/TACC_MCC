@@ -42,7 +42,6 @@ function getStorage(key, callback) {
 function handlePrivacyPolicyClick(event) {
     // Once clicked, store acceptance in storage
     setStorage({ privacyPolicyAccepted: true }, () => {
-        console.log('Privacy policy accepted');
         // Optionally disable the button and change its text
         event.target.disabled = true;
         event.target.textContent = 'Privacy Policy Accepted';

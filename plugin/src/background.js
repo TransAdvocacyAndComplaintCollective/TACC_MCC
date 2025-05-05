@@ -61,7 +61,7 @@ browser.runtime.onInstalled.addListener((details) => {
       if (browser.runtime.lastError) {
         console.error("Error creating init tab:", browser.runtime.lastError);
       } else {
-        console.log("Init tab created successfully:", tab);
+        // console.log("Init tab created successfully:", tab);
       }
     });
   }
@@ -96,8 +96,8 @@ browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
 
   if (message.action === "sendText") {
     const allReviewTableData = message.allReviewTableData;
-    console.log("Received allReviewTableData:", allReviewTableData);
-    console.log("Received message:", message);
+    // console.log("Received allReviewTableData:", allReviewTableData);
+    // console.log("Received message:", message);
 
     // Create a container for the parsed data
     let parsedData = {
@@ -136,7 +136,7 @@ browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       if (browser.runtime.lastError) {
         console.error("Error creating confirmation tab:", browser.runtime.lastError);
       } else {
-        console.log("Confirmation tab created successfully:", tab);
+        // console.log("Confirmation tab created successfully:", tab);
       }
     });
 
